@@ -1,0 +1,56 @@
+
+a:link {
+	color: #03677f;
+	text-decoration: underline;
+}
+
+a:visited {
+	color: #03677f;
+	text-decoration: underline;
+}
+
+a:hover {
+	text-decoration: none;
+}
+
+textarea.template {
+	display: none;
+}
+
+
+body {
+	line-height: 1.66;
+}
+
+#whole {
+
+}
+
+.calc {
+	width: 30em;
+	border: 1px solid #ccc;
+	padding: 1em;
+}
+
+dl.input {
+	line-height: 1.33;
+}
+
+dl.input dt {
+	font-weight: bold;
+	width: 8em;
+}
+
+dl.input dd {
+	margin: -1.33em 0 0.33em 8em;
+}
+
+.output {
+	padding: 1em;
+	font-weight: bold;
+}
+
+.memo {
+	font-size: 80%;
+	color: #999;
+}
