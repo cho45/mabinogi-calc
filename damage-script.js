@@ -38,21 +38,15 @@ MabinogiDamageCalculator.prototype = {
 		$(this.form.criticalexpectation).html(expdmgwithcri.toFixed(2));
 
 
-		// 離散値として計算するのでΣで簡略化 & 高速化
-		function sigma (a, b, fun) {
-			var ret = 0;
-			for (var i = a; i < b; i++) {
-				ret += fun(i);
-			}
-			return ret;
-		}
+		// 正規分布の累積分布関数生成関数
+		function make_normal_distribution_function (variance, average) {
+			var a   = Math.sqrt(variance) * Math.sqrt(2);
+			var erf = function (x) {
+				return ((x < 0.0) ? -1 : 1) * Math.pow(1.0 - Math.exp(-1.27323954 * x * x), 0.5);
+			};
 
-		// 正規分布確率密度関数生成関数
-		function make_normal_distribution_pdf (variance, average) {
-			var a = (1 / (Math.sqrt(variance) * Math.sqrt(2 * Math.PI)));
-			var b = 2 * variance;
 			return function (x) {
-				return a * Math.exp(-(Math.pow(x - average, 2) / b));
+				return (1 + erf((x - average) / a)) / 2;
 			};
 		}
 
@@ -60,13 +54,25 @@ MabinogiDamageCalculator.prototype = {
 			var variance = 0.0835 * Math.pow(max - min, 2);
 			var average  = (max - min) * (balance / 100) + min;
 
-			var pdf = make_normal_distribution_pdf(variance, average);
+			var nd = make_normal_distribution_function(variance, average);
+			var pr = function (x) {
+				switch (true) {
+					case x <  min: return 0;
+					case x == min: return nd(x + 1);
+					case x == max: return 1 - nd(x);
+					case x >  max: return 0;
+					default:       return nd(x + 1) - nd(x);
+				}
+			};
 
-			var emin = min && sigma(0,    min, function (x) { return pdf(x) }) * min;
-			var emid =        sigma(min,  max, function (x) { return x * pdf(x) });
-			var emax = max && sigma(max, 1000, function (x) { return pdf(x) }) * max;
-			return emin + emid + emax;
+			var ret = 0;
+			for (var i = min; i <= max; i++) {
+				ret += pr(i) * i;
+			}
+
+			return ret;
 		}
+
 
 	},
 };
