@@ -71,11 +71,17 @@ pre {
 }
 
 .graph {
-	text-indent: -1000px;
-	overflow: hidden;
+	position: relative;
+	height: 200px;
+	font-size: 80%;
+	margin: 0.5em 0.3em 0;
+	padding: 0;
 }
 
 .graphbar {
-	height: 1px;
+	position: absolute;
+	bottom: 0;
+	text-indent: -1000px;
+	overflow: hidden;
 	background: #555;
 }

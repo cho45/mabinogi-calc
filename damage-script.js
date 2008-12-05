@@ -98,11 +98,21 @@ MabinogiDamageCalculator.prototype = {
 		$(self.form.graph).empty();
 
 		var max = graph.slice(0).sort(function (a, b) { return b.pr - a.pr })[0];
+		var w   = $(self.form.graph).width() / graph.length;
 		for (var i = 0; i < graph.length; i++) {
 			var d = graph[i];
 			var bar = $E("<div class='graphbar' title='#{dmg} #{pr}'>#{dmg}</div>", { parent: self.form.graph, data: d });
-			$(bar.root).css("width", (d.pr / max.pr) * 100 + "%");
+			with (bar.root.style) {
+				height = (d.pr / max.pr) * 100 + "%";
+				width  = w + "px";
+				left   = w * i + "px";
+			}
 		}
+
+		$E("<div>最もよくでるダメージ値: #{dmg} その確率: #{pr}%</div>", { parent: self.form.graph, data: {
+			dmg: max.dmg,
+			pr: (max.pr * 100).toFixed(2)
+		} });
 	}
 };
 MabinogiDamageCalculator.Inputs = ["min", "max", "critical", "criticalrank", "balance"];
