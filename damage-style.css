@@ -69,3 +69,13 @@ pre {
 	line-height: 1.33;
 	font-size: 90%;
 }
+
+.graph {
+	text-indent: -1000px;
+	overflow: hidden;
+}
+
+.graphbar {
+	height: 1px;
+	background: #555;
+}
