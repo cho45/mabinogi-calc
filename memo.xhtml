@@ -1,0 +1,290 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN" "http://www.w3.org/TR/MathML2/dtd/xhtml-math11-f.dtd" [
+	<!ENTITY math "http://www.w3.org/1998/Math/MathML">
+]>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<title>mabinogi (マビノギ) ダメージ計算 memo</title>
+		<link rel="stylesheet" type="text/css" href="damage-style.css" media="screen,tv,projection" title="site"/>
+		<link rel="meta" type="application/rdf+xml" title="FOAF" href="http://lowreal.net/cho45/foaf"/>
+
+		<link rev="made" href="mailto:cho45@lowreal.net"/>
+
+	</head>
+	<body>
+		<div id="whole">
+			<h1 id="top"><a href="">mabinogi ダメージ計算 memo</a></h1>
+			<p>期待値計算</p>
+
+			<div id="content">
+				<p>MathML が表示できる環境が必要です。Firefox3とか</p>
+				<dl>
+					<dt>分布</dt>
+					<dd>
+						<math xmlns="&math;">
+							<mrow>
+								<msup>
+									<mi>σ</mi>
+									<mn>2</mn>
+								</msup>
+							</mrow>
+							<mo>=</mo>
+							<mrow>
+								<mn>0.0835</mn>
+								<mo>&InvisibleTimes;</mo>
+								<msup>
+									<mfenced>
+										<mrow>
+											<mi>Max</mi>
+											<mo>-</mo>
+											<mi>Min</mi>
+										</mrow>
+									</mfenced>
+									<mn>2</mn>
+								</msup>
+							</mrow>
+						</math>
+					</dd>
+					<dt>平均</dt>
+					<dd>
+						<math xmlns="&math;">
+							<mi>μ</mi>
+							<mo>=</mo>
+							<mrow>
+								<mi>Min</mi>
+								<mo>+</mo>
+								<mfenced>
+									<mrow>
+										<mi>Max</mi>
+										<mo>-</mo>
+										<mi>Min</mi>
+									</mrow>
+								</mfenced>
+								<mo>&InvisibleTimes;</mo>
+								<mfenced>
+									<mrow>
+										<mi>Balance</mi>
+										<mo>/</mo>
+										<mn>100</mn>
+									</mrow>
+								</mfenced>
+							</mrow>
+						</math>
+					</dd>
+					<dt>正規分布確率密度関数 (あるダメージ x が現われる確率を求める関数)</dt>
+					<dd>
+						<math xmlns="http://www.w3.org/1998/Math/MathML">
+							<mrow>
+								<mi>f</mi>
+								<mo>&ApplyFunction;</mo>
+								<mfenced>
+									<mrow>
+										<mi>x</mi>
+									</mrow>
+								</mfenced>
+							</mrow>
+							<mo>=</mo>
+							<mrow>
+								<mfrac>
+									<mn>1</mn>
+									<mrow>
+										<mi>σ</mi>
+										<mo>&InvisibleTimes;</mo>
+										<msqrt>
+											<mn>2</mn>
+											<mo>&InvisibleTimes;</mo>
+											<mi>π</mi>
+										</msqrt>
+									</mrow>
+								</mfrac>
+								<mo>&InvisibleTimes;</mo>
+								<mi>exp</mi>
+								<mo>&ApplyFunction;</mo>
+								<mfenced>
+									<mrow>
+										<mo>-</mo>
+										<mfrac>
+											<mfenced>
+												<mrow>
+													<mi>x</mi>
+													<mo>-</mo>
+													<msup>
+														<mi>μ</mi>
+														<mn>2</mn>
+													</msup>
+												</mrow>
+											</mfenced>
+											<mrow>
+												<mn>2</mn>
+												<mo>&InvisibleTimes;</mo>
+												<msup>
+													<mi>σ</mi>
+													<mn>2</mn>
+												</msup>
+											</mrow>
+										</mfrac>
+									</mrow>
+								</mfenced>
+							</mrow>
+						</math>
+					</dd>
+				</dl>
+				<p>基本的な分布はこれで求まるらしい。Max, Min, Balance はそれぞれ最大ダメージ・最小ダメージ・バランス。(Mabinogi Wiki* より)</p>
+				<p>ただし、Min 以下の値や Max 以上の値は丸めこまれるので、Min, Max ぴったりの値がでる確率は上記の関数では求められないし、
+				実際にはダメージは離散的なので、もうちょい工夫がいる。</p>
+
+				<dl>
+					<dt>正規表現の累積分布関数 (密度関数を積分した関数で -&infin; から x までの積分値が求められる)</dt>
+					<dd>
+						<math xmlns="&math;">
+							<mrow>
+								<mi>nd</mi>
+								<mo>&ApplyFunction;</mo>
+								<mfenced>
+									<mrow>
+										<mi>x</mi>
+									</mrow>
+								</mfenced>
+							</mrow>
+							<mo>=</mo>
+							<mrow>
+								<mfrac>
+									<mn>1</mn>
+									<mn>2</mn>
+								</mfrac>
+							</mrow>
+							<mo>&InvisibleTimes;</mo>
+							<mfenced>
+								<mrow>
+									<mn>1</mn>
+									<mo>+</mo>
+									<mi>erf</mi>
+									<mo>&ApplyFunction;</mo>
+									<mfenced>
+										<mfrac>
+											<mrow>
+												<mi>x</mi>
+												<mo>-</mo>
+												<mi>μ</mi>
+											</mrow>
+											<mrow>
+												<mi>σ</mi>
+												<mo>&InvisibleTimes;</mo>
+												<msqrt>
+													<mn>2</mn>
+												</msqrt>
+											</mrow>
+										</mfrac>
+									</mfenced>
+								</mrow>
+							</mfenced>
+						</math>
+					</dd>
+				</dl>
+
+				<p>を使って、それぞれのダメージ値に対する確率を求める。ダメージの小数点以下が切り捨てだと仮定すると (ダメージ計算が Math.floor(min + Math.random() * (max + 1)) で行なわれているという仮定)</p>
+
+				<dl>
+					<dt>Min 出現確率</dt>
+					<dd>
+						<math xmlns="&math;">
+							<mi>nd</mi>
+							<mo>&ApplyFunction;</mo>
+							<mfenced>
+								<mrow>
+									<mi>Min</mi>
+									<mo>+</mo>
+									<mi>1</mi>
+								</mrow>
+							</mfenced>
+						</math>
+					</dd>
+					<dt>Max 出現確率</dt>
+					<dd>
+						<math xmlns="&math;">
+							<mn>1</mn>
+							<mo>-</mo>
+							<mi>nd</mi>
+							<mo>&ApplyFunction;</mo>
+							<mfenced>
+								<mrow>
+									<mi>Max</mi>
+								</mrow>
+							</mfenced>
+						</math>
+					</dd>
+					<dt>Min &lt; x &lt; Max の出現確率</dt>
+					<dd>
+						<math xmlns="&math;">
+							<mi>nd</mi>
+							<mo>&ApplyFunction;</mo>
+							<mfenced>
+								<mrow>
+									<mi>x + 1</mi>
+								</mrow>
+							</mfenced>
+							<mo>-</mo>
+							<mi>nd</mi>
+							<mo>&ApplyFunction;</mo>
+							<mfenced>
+								<mrow>
+									<mi>x</mi>
+								</mrow>
+							</mfenced>
+						</math>
+					</dd>
+					<dt>上記以外</dt>
+					<dd>
+						<math xmlns="&math;">
+							<mn>0</mn>
+						</math>
+					</dd>
+				</dl>
+
+				<p>このような条件分けをした関数 <code>p</code> を定義したとき、ダメージ期待値は</p>
+				<p>
+					<math xmlns="&math;">
+						<mrow>
+							<mi>E</mi>
+							<mo>[</mo>
+							<mi>X</mi>
+							<mo>]</mo>
+						</mrow>
+						<mo>=</mo>
+						<mrow>
+							<munderover>
+								<mi>&sum;</mi>
+								<mrow>
+									<mi>i</mi>
+									<mo>=</mo>
+									<mi>Min</mi>
+								</mrow>
+								<mi>Max</mi>
+							</munderover>
+							<msub>
+								<mi>x</mi>
+								<mi>i</mi>
+							</msub>
+							<mo>&InvisibleTimes;</mo>
+							<mi>p</mi>
+							<mo>&ApplyFunction;</mo>
+							<mfenced>
+								<mrow>
+									<mi>X</mi>
+									<mo>=</mo>
+									<msub>
+										<mi>x</mi>
+										<mi>i</mi>
+									</msub>
+								</mrow>
+							</mfenced>
+						</mrow>
+					</math>
+				</p>
+			</div>
+
+			<div id="footer">
+			</div>
+		</div>
+	</body>
+</html>

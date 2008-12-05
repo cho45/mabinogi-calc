@@ -54,3 +54,7 @@ dl.input dd {
 	font-size: 80%;
 	color: #999;
 }
+
+math {
+	font-size: 150%;
+}
