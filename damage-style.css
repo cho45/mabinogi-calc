@@ -58,3 +58,9 @@ dl.input dd {
 math {
 	font-size: 150%;
 }
+
+p.example {
+	float: right;
+	margin: 0 0 0 2em;
+	padding: 0;
+}
