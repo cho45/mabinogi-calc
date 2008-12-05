@@ -64,3 +64,8 @@ p.example {
 	margin: 0 0 0 2em;
 	padding: 0;
 }
+
+pre {
+	line-height: 1.33;
+	font-size: 90%;
+}
