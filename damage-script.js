@@ -51,6 +51,8 @@ MabinogiDamageCalculator.prototype = {
 		}
 
 		function expectation (min, max, balance) {
+			if (min > max) max = min;
+
 			var variance = 0.0835 * Math.pow(max - min, 2);
 			var average  = (max - min) * (balance / 100) + min;
 
