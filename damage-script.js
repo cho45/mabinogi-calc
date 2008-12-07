@@ -42,6 +42,9 @@ MabinogiDamageCalculator.prototype = {
 
 		$(self.form.expectation).html(expdmg.toFixed(2));
 
+		self.form.criticalrank.value = self.form.criticalrank.value.toUpperCase();
+
+
 		var critical  = Number(self.form.critical.value) / 100;
 		var adddamage = Number(self.form.max.value) * (MabinogiDamageCalculator.CriticalRank[self.form.criticalrank.value] / 100);
 
