@@ -6,9 +6,7 @@ function log (m) {
 }
 
 
-function MabinogiDamageCalculator () {
-	this.init.apply(this, arguments);
-}
+function MabinogiDamageCalculator () { this.init.apply(this, arguments) }
 MabinogiDamageCalculator.prototype = {
 	init : function (template, parent) {
 		var self = this;
