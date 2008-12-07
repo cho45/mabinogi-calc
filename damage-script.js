@@ -2,7 +2,7 @@
 $E = createElementFromString;
 
 function log (m) {
-	if (console.log) console.log(m);
+	if (window.console) console.log(m);
 }
 
 
