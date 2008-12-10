@@ -1,9 +1,100 @@
 
-$E = createElementFromString;
+function $E (str, opts) {
+	if (!opts) opts = { data: {} };
+
+	var t, cur = opts.parent || document.createDocumentFragment(), ret = {}, stack = [cur];
+	while (str.length) {
+		if (str.indexOf("<") == 0) {
+			if ((t = str.match(/^\s*<(\/?[^\s>\/]+)([^>]+?)?(\/)?>/))) {
+				var tag = t[1], attrs = t[2], isempty = !!t[3];
+				if (tag.indexOf("/") == -1) {
+					child = document.createElement(tag);
+					if (attrs) attrs.replace(/([a-z]+)=(?:'([^']+)'|"([^"]+)")/gi,
+						function (m, name, v1, v2) {
+							var v = text(v1 || v2);
+							if (name == "class") ret[v] = child;
+							child.setAttribute(name, v);
+						}
+					);
+					cur.appendChild(ret.root ? child : (ret.root = child));
+					if (!isempty) {
+						stack.push(cur);
+						cur = child;
+					}
+				} else cur = stack.pop();
+			} else throw("Parse Error: " + str);
+		} else {
+			if ((t = str.match(/^([^<]+)/))) cur.appendChild(document.createTextNode(text(t[0])));
+		}
+		str = str.substring(t[0].length);
+	}
+
+	function text (str) {
+		return str
+			.replace(/&(#(x)?)?([^;]+);/g, function (_, isNumRef, isHex, ref) {
+				return isNumRef ? String.fromCharCode(parseInt(ref, isHex ? 16 : 10)):
+				                  {"lt":"<","gt":"<","amp":"&"}[ref];
+			})
+			.replace(/#\{([^}]+)\}/g, function (_, name) {
+				return opts.data[name];
+			});
+	}
+
+	return ret;
+}
+
 
 function log (m) {
 	if (window.console) console.log(m);
 }
+
+$.fn.extend({
+	spinbox : function (opts) {
+		if (!opts) opts = {};
+		if (!opts.handler) opts.handler = function (prev, direction) {
+			return Number(prev) + direction;
+		};
+
+		return this.each(function () {
+			var input = $(this);
+
+			var button = $E("<div class='spinbutton'><div class='up'>+</div><div class='down'>-</div></div>");
+			input.after(button.root);
+
+			var h = input.height() + 3;
+
+			$(button.root).css({
+				position: "relative",
+				fontSize: h / 2,
+				lineHeight: 1
+			});
+
+			$(button.up)
+				.css({
+					position: "absolute",
+					display: "block",
+					top: 0,
+					height: h / 2
+				})
+				.click(function () {
+					input.val(opts.handler(input.val(), 1));
+					input.change();
+				});
+
+			$(button.down)
+				.css({
+					position: "absolute",
+					display: "block",
+					top: h / 2 + 3,
+					height: h / 2
+				})
+				.click(function () {
+					input.val(opts.handler(input.val(), -1));
+					input.change();
+				});
+		});
+	}
+});
 
 
 function MabinogiDamageCalculator () { this.init.apply(this, arguments) }
@@ -15,11 +106,18 @@ MabinogiDamageCalculator.prototype = {
 
 		$.each(MabinogiDamageCalculator.Inputs, function (i) {
 			var name = this;
-			$(self.form[name]).keyup(function () {
-				if (self.form[name].value !== "") {
-					self.calc();
-				}
-			});
+			var input = $(self.form[name]);
+			input
+				.change(function () {
+					if (self.form[name].value !== "") {
+						self.calc();
+					}
+				})
+				.keyup(function () {
+					$(this).change();
+				});
+
+			if (input.attr("title") == "integer") input.spinbox();
 		});
 
 		self.calc();

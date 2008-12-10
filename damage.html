@@ -5,7 +5,7 @@
 		<link rel="stylesheet" type="text/css" href="damage-style.css" media="screen,tv,projection" title="site"/>
 
 		<script type="text/javascript" src="/lib/jquery-1.2.6.min.js"></script>
-		<script type="text/javascript" src="http://gist.github.com/3239.txt"></script>
+		<!--script type="text/javascript" src="http://gist.github.com/3239.txt"></script-->
 		<script type="text/javascript" src="damage-script.js"></script>
 	</head>
 	<body>
@@ -21,18 +21,18 @@
 							<dl class="input">
 								<dt>ダメージ</dt>
 								<dd>
-								<input type="text" size="4" value="0" class="min"/>
+								<input type="text" size="4" value="0" class="min" title="integer"/>
 								~
-								<input type="text" size="4" value="100" class="max"/>
+								<input type="text" size="4" value="100" class="max" title="integer"/>
 								</dd>
 								<dt>クリティカル</dt>
 								<dd>
-								<input type="text" size="4" value="30" class="critical"/> %
+								<input type="text" size="4" value="30" class="critical" title="integer"/> %
 								(Rank: <input type="text" size="2" value="7" class="criticalrank"/>)
 								</dd>
 								<dt>バランス</dt>
 								<dd>
-								<input type="text" size="4" value="80" class="balance"/>
+								<input type="text" size="4" value="80" class="balance" title="integer"/>
 								</dd>
 							</dl>
 						</fieldset>
