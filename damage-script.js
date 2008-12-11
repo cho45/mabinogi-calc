@@ -127,7 +127,7 @@ MabinogiDamageCalculator.prototype = {
 		var self = this;
 
 		var graph  = [];
-		var expdmg = expectation(
+		var expdmg = MabinogiDamageCalculator.calcExpectation(
 			Number(self.form.min.value),
 			Number(self.form.max.value),
 			Number(self.form.balance.value),
@@ -148,48 +148,6 @@ MabinogiDamageCalculator.prototype = {
 
 		var expdmgwithcri = expdmg + adddamage * critical;
 		$(self.form.criticalexpectation).html(expdmgwithcri.toFixed(2));
-
-
-		// 正規分布の累積分布関数生成関数
-		function make_normal_distribution_function (variance, average) {
-			var a   = Math.sqrt(variance) * Math.sqrt(2);
-			var erf = function (x) {
-				return ((x < 0.0) ? -1 : 1) * Math.pow(1.0 - Math.exp(-1.27323954 * x * x), 0.5);
-			};
-
-			return function (x) {
-				return (1 + erf((x - average) / a)) / 2;
-			};
-		}
-
-		function expectation (min, max, balance, cb) {
-			if (min > max) max = min;
-
-			var variance = 0.0835 * Math.pow(max - min, 2);
-			var average  = (max - min) * (balance / 100) + min;
-
-			var nd = make_normal_distribution_function(variance, average);
-			var pr = function (x) {
-				switch (true) {
-					case x <  min: return 0;
-					case x == min: return nd(x + 1);
-					case x == max: return 1 - nd(x);
-					case x >  max: return 0;
-					default:       return nd(x + 1) - nd(x);
-				}
-			};
-
-			var ret = 0, t = 0;
-			for (var i = min; i <= max; i++) {
-				t = pr(i);
-				cb(t, i);
-				ret += t * i;
-			}
-
-			return ret;
-		}
-
-
 	},
 
 	drawGraph : function (graph) {
@@ -214,6 +172,45 @@ MabinogiDamageCalculator.prototype = {
 		} });
 	}
 };
+MabinogiDamageCalculator.calcExpectation = function (min, max, balance, cb) {
+	if (min > max) max = min;
+
+	var variance = 0.0835 * Math.pow(max - min, 2);
+	var average  = (max - min) * (balance / 100) + min;
+
+	var nd = make_normal_distribution_function(variance, average);
+	var pr = function (x) {
+		switch (true) {
+			case x <  min: return 0;
+			case x == min: return nd(x + 1);
+			case x == max: return 1 - nd(x);
+			case x >  max: return 0;
+			default:       return nd(x + 1) - nd(x);
+		}
+	};
+
+	var ret = 0, t = 0;
+	for (var i = min; i <= max; i++) {
+		t = pr(i);
+		cb(t, i);
+		ret += t * i;
+	}
+
+	return ret;
+
+	// 正規分布の累積分布関数生成関数
+	function make_normal_distribution_function (variance, average) {
+		var a   = Math.sqrt(variance) * Math.sqrt(2);
+		var erf = function (x) {
+			return ((x < 0.0) ? -1 : 1) * Math.pow(1.0 - Math.exp(-1.27323954 * x * x), 0.5);
+		};
+
+		return function (x) {
+			return (1 + erf((x - average) / a)) / 2;
+		};
+	}
+};
+
 MabinogiDamageCalculator.Inputs = ["min", "max", "critical", "criticalrank", "balance"];
 MabinogiDamageCalculator.CriticalRank = {
 	F: 50,
