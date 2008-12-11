@@ -87,17 +87,10 @@ pre {
 }
 
 .spinbutton {
-	display: inline-block;
-	vertical-align: top;
-	width: 1.2em;
 }
 
 .spinbutton .up,
 .spinbutton .down {
-	cursor: default;
-	display: none;
-	text-align: center;
-	width: 1em;
 	background: #ccc;
 	border: 1px solid #999;
 }

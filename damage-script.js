@@ -48,6 +48,10 @@ function log (m) {
 	if (window.console) console.log(m);
 }
 
+Array.prototype.dup = function () { // shallow copy
+	return this.slice(0);
+};
+
 $.fn.extend({
 	spinbox : function (opts) {
 		if (!opts) opts = {};
@@ -64,6 +68,9 @@ $.fn.extend({
 			var h = input.height() + 3;
 
 			$(button.root).css({
+				display: "inline-block",
+				verticalAlign: "top",
+				width: "1.2em",
 				position: "relative",
 				fontSize: h / 2,
 				lineHeight: 1
@@ -71,6 +78,9 @@ $.fn.extend({
 
 			$(button.up)
 				.css({
+					width: "1em",
+					cursor: "default",
+					textAlign: "center",
 					position: "absolute",
 					display: "block",
 					top: 0,
@@ -83,6 +93,9 @@ $.fn.extend({
 
 			$(button.down)
 				.css({
+					width: "1em",
+					cursor: "default",
+					textAlign: "center",
 					position: "absolute",
 					display: "block",
 					top: h / 2 + 3,
@@ -154,7 +167,7 @@ MabinogiDamageCalculator.prototype = {
 		var self = this;
 		$(self.form.graph).empty();
 
-		var max = graph.slice(0).sort(function (a, b) { return b.pr - a.pr })[0];
+		var max = graph.dup().sort(function (a, b) { return b.pr - a.pr })[0];
 		var w   = $(self.form.graph).width() / graph.length;
 		for (var i = 0; i < graph.length; i++) {
 			var d = graph[i];
