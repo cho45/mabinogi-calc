@@ -52,13 +52,14 @@
 				<div id="calcall" class="calc">
 					<fieldset>
 						<legend>入力</legend>
-						<textarea class="input" cols="40" rows="5">基準,90,190,80,30,7
+						<textarea class="input" cols="40" rows="5">*基準,90,190,80,30,7
 FH,90,194,80,30,7
 鋼玉(未),85,196,80,30,7
 鋼玉,90,196,80,30,7
 						</textarea>
 						<input type="button" class="calcbtn" value="Calc"/>
-						<p class="less">一括計算・比較用です。<kbd>説明,最小,最大,バランス,クリ率,クリランク</kbd> で入力します。</p>
+						<p class="less">一括計算・比較用です。<kbd>説明,最小,最大,バランス,クリ率,クリランク</kbd> で入力します。
+						説明に * がついている場合、それを基準としていくつかの項目で差分を表示します。</p>
 					</fieldset>
 					<table id="calcall-output" class="tablesorter">
 						<thead>
@@ -76,13 +77,13 @@ FH,90,194,80,30,7
 						<tbody>
 							<tr>
 								<td>#{description}</td>
-								<td>#{min}</td>
-								<td>#{max}</td>
-								<td>#{balance}</td>
-								<td>#{critical}</td>
+								<td>#{min} <span class="delta">#{mindelta}</span></td>
+								<td>#{max} <span class="delta">#{maxdelta}</span></td>
+								<td>#{balance} <span class="delta">#{balancedelta}</span></td>
+								<td>#{critical} <span class="delta">#{criticaldelta}</span></td>
 								<td>#{criticalrank}</td>
-								<td>#{expectation}</td>
-								<td>#{expdmgwithcri}</td>
+								<td>#{expectationout} <span class="delta">#{expectationdelta}</span></td>
+								<td>#{expdmgwithcriout} <span class="delta">#{expdmgwithcridelta}</span></td>
 							</tr>
 						</tbody>
 					</table>

@@ -36,7 +36,7 @@ function $E (str, opts) {
 				                  {"lt":"<","gt":"<","amp":"&"}[ref];
 			})
 			.replace(/#\{([^}]+)\}/g, function (_, name) {
-				return opts.data[name];
+				return opts.data[name] || "";
 			});
 	}
 
@@ -272,15 +272,10 @@ $(function () {
 
 
 	button.click(function () { try {
+		var reference = null;
+
 		var inputs = input.val().split(/\n/).map(function (d) {
-			return d.replace(/\s+/g, "").split(",");
-		});
-
-		tbody.empty();
-
-		inputs.forEach(function (data) {
-			if (!data[0]) return;
-
+			var data =  d.replace(/\s+/g, "").split(",");
 			data = {
 				description  : data[0],
 				min          : data[1],
@@ -289,7 +284,7 @@ $(function () {
 				critical     : data[4],
 				criticalrank : data[5]
 			};
-			log(data);
+			if (!data.description) return null;
 
 			data.expectation   = MabinogiDamageCalculator.calcExpectation(
 				Number(data.min),
@@ -302,8 +297,32 @@ $(function () {
 				data.criticalrank
 			);
 
-			data.expectation = data.expectation.toFixed(2);
-			data.expdmgwithcri = data.expdmgwithcri.toFixed(2);
+			if (data.description.match(/^\*/)) reference = data;
+
+			return data;
+		});
+
+		log("ref");
+		log(reference);
+
+		tbody.empty();
+		inputs.forEach(function (data) {
+			if (!data) return;
+
+			log(data);
+
+			data.expectationout   = data.expectation.toFixed(2);
+			data.expdmgwithcriout = data.expdmgwithcri.toFixed(2);
+
+			if (reference) {
+				log((Number(data.expectation), reference.expectation));
+				data.expectationdelta   =  (data.expectation   - reference.expectation).toFixed(2);
+				data.expdmgwithcridelta =  (data.expdmgwithcri - reference.expdmgwithcri).toFixed(2);
+				data.mindelta           =  (data.min   - reference.min).toFixed(2);
+				data.maxdelta           =  (data.max   - reference.max).toFixed(2);
+				data.balancedelta       =  (data.balance   - reference.balance).toFixed(2);
+				data.criticaldelta      =  (data.critical   - reference.critical).toFixed(2);
+			}
 
 			$E(tmpl, { parent: tbody[0], data : data });
 		});
