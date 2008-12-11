@@ -5,6 +5,7 @@
 		<link rel="stylesheet" type="text/css" href="damage-style.css" media="screen,tv,projection" title="site"/>
 
 		<script type="text/javascript" src="/lib/jquery-1.2.6.min.js"></script>
+		<script type="text/javascript" src="lib/jquery.tablesorter.min.js"></script>
 		<!--script type="text/javascript" src="http://gist.github.com/3239.txt"></script-->
 		<script type="text/javascript" src="damage-script.js"></script>
 	</head>
@@ -47,6 +48,47 @@
 						</dl>
 					</textarea>
 				</div>
+
+				<div id="calcall" class="calc">
+					<fieldset>
+						<legend>入力</legend>
+						<textarea class="input" cols="40" rows="5">基準,90,190,80,30,7
+FH,90,194,80,30,7
+鋼玉(未),85,196,80,30,7
+鋼玉,90,196,80,30,7
+						</textarea>
+						<input type="button" class="calcbtn" value="Calc"/>
+						<p class="less">一括計算・比較用です。<kbd>説明,最小,最大,バランス,クリ率,クリランク</kbd> で入力します。</p>
+					</fieldset>
+					<table id="calcall-output" class="tablesorter">
+						<thead>
+							<tr>
+								<th>Desc</th>
+								<th>Min</th>
+								<th>Max</th>
+								<th>Balance</th>
+								<th>Cri</th>
+								<th>CriRank</th>
+								<th>E.</th>
+								<th>E(Cri)</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>#{description}</td>
+								<td>#{min}</td>
+								<td>#{max}</td>
+								<td>#{balance}</td>
+								<td>#{critical}</td>
+								<td>#{criticalrank}</td>
+								<td>#{expectation}</td>
+								<td>#{expdmgwithcri}</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+
+				<hr />
 
 				<div class="desc">
 					<h2>備考</h2>

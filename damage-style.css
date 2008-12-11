@@ -1,3 +1,4 @@
+@import "lib/style.css";
 
 a:link {
 	color: #03677f;
@@ -27,9 +28,15 @@ body {
 }
 
 .calc {
+	float: left;
 	width: 30em;
 	border: 1px solid #ccc;
 	padding: 1em;
+	margin: 0 1em 1em 0;
+}
+
+hr {
+	clear: both;
 }
 
 dl.input {
@@ -53,6 +60,10 @@ dl.input dd {
 .memo {
 	font-size: 80%;
 	color: #999;
+}
+
+.less {
+	font-size: 80%;
 }
 
 math {
@@ -94,3 +105,12 @@ pre {
 	background: #ccc;
 	border: 1px solid #999;
 }
+
+#calcall {
+	width: 40em;
+}
+
+#calcall-output {
+	font-size: 90%;
+}
+

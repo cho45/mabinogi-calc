@@ -155,11 +155,12 @@ MabinogiDamageCalculator.prototype = {
 
 		self.form.criticalrank.value = self.form.criticalrank.value.toUpperCase();
 
+		var expdmgwithcri = expdmg + MabinogiDamageCalculator.calcCriticalAddtionalDamageExpectation(
+			Number(self.form.max.value),
+			Number(self.form.critical.value),
+			self.form.criticalrank.value
+		);
 
-		var critical  = Number(self.form.critical.value) / 100;
-		var adddamage = Number(self.form.max.value) * (MabinogiDamageCalculator.CriticalRank[self.form.criticalrank.value] / 100);
-
-		var expdmgwithcri = expdmg + adddamage * critical;
 		$(self.form.criticalexpectation).html(expdmgwithcri.toFixed(2));
 	},
 
@@ -186,6 +187,7 @@ MabinogiDamageCalculator.prototype = {
 	}
 };
 MabinogiDamageCalculator.calcExpectation = function (min, max, balance, cb) {
+	if (!cb) cb = function () {};
 	if (min > max) max = min;
 
 	var variance = 0.0835 * Math.pow(max - min, 2);
@@ -223,6 +225,15 @@ MabinogiDamageCalculator.calcExpectation = function (min, max, balance, cb) {
 		};
 	}
 };
+MabinogiDamageCalculator.calcCriticalAddtionalDamageExpectation = function (max, critical, criticalrank) {
+	criticalrank = criticalrank.toUpperCase();
+
+
+	var critical  = Number(criticalrank) / 100;
+	var adddamage = Number(max) * (MabinogiDamageCalculator.CriticalRank[criticalrank] / 100);
+
+	return adddamage * critical;
+};
 
 MabinogiDamageCalculator.Inputs = ["min", "max", "critical", "criticalrank", "balance"];
 MabinogiDamageCalculator.CriticalRank = {
@@ -247,4 +258,62 @@ $(function () {
 	var template = $("#calc-template").val();
 	var parent   = $("#calc-template").parent();
 	new MabinogiDamageCalculator(template, parent[0]);
+
+
+	// TODO: あとで分離
+
+	var calcall = $("#calcall");
+	var input   = calcall.find("textarea");
+	var button  = calcall.find("input[type='button']");
+	var table   = calcall.find("table");
+	var tbody   = table.find("tbody");
+	var tmpl    = tbody.html();
+	table.tablesorter();
+	tbody.empty();
+
+
+	button.click(function () { try {
+		var inputs = input.val().split(/\n/).map(function (d) {
+			return d.replace(/\s+/g, "").split(",");
+		});
+
+		tbody.empty();
+
+		inputs.forEach(function (data) {
+			if (!data[0]) return;
+
+			data = {
+				description  : data[0],
+				min          : data[1],
+				max          : data[2],
+				balance      : data[3],
+				critical     : data[4],
+				criticalrank : data[5]
+			};
+			log(data);
+
+			data.expectation   = MabinogiDamageCalculator.calcExpectation(
+				Number(data.min),
+				Number(data.max),
+				Number(data.balance)
+			);
+			data.expdmgwithcri = data.expectation + MabinogiDamageCalculator.calcCriticalAddtionalDamageExpectation(
+				Number(data.max),
+				Number(data.critical),
+				data.criticalrank
+			);
+
+			data.expectation = data.expectation.toFixed(2);
+			data.expdmgwithcri = data.expdmgwithcri.toFixed(2);
+
+			$E(tmpl, { parent: tbody[0], data : data });
+		});
+
+		var sorting = [ [6, 1], [7, 1] ];
+
+		table.trigger("update");
+		table.trigger("sorton", [sorting]);
+	} catch (e) { alert(e) } });
+
+	button.click();
 });
