@@ -193,6 +193,18 @@ MabinogiDamageCalculator.calcExpectation = function (min, max, balance, cb) {
 	var variance = 0.0835 * Math.pow(max - min, 2);
 	var average  = (max - min) * (balance / 100) + min;
 
+	// 正規分布の累積分布関数生成関数
+	function make_normal_distribution_function (variance, average) {
+		var a   = Math.sqrt(variance) * Math.sqrt(2);
+		var erf = function (x) {
+			return ((x < 0.0) ? -1 : 1) * Math.pow(1.0 - Math.exp(-1.27323954 * x * x), 0.5);
+		};
+
+		return function (x) {
+			return (1 + erf((x - average) / a)) / 2;
+		};
+	}
+
 	var nd = make_normal_distribution_function(variance, average);
 	var pr = function (x) {
 		switch (true) {
@@ -212,24 +224,11 @@ MabinogiDamageCalculator.calcExpectation = function (min, max, balance, cb) {
 	}
 
 	return ret;
-
-	// 正規分布の累積分布関数生成関数
-	function make_normal_distribution_function (variance, average) {
-		var a   = Math.sqrt(variance) * Math.sqrt(2);
-		var erf = function (x) {
-			return ((x < 0.0) ? -1 : 1) * Math.pow(1.0 - Math.exp(-1.27323954 * x * x), 0.5);
-		};
-
-		return function (x) {
-			return (1 + erf((x - average) / a)) / 2;
-		};
-	}
 };
 MabinogiDamageCalculator.calcCriticalAddtionalDamageExpectation = function (max, critical, criticalrank) {
 	criticalrank = criticalrank.toUpperCase();
+	critical     = Number(criticalrank) / 100;
 
-
-	var critical  = Number(criticalrank) / 100;
 	var adddamage = Number(max) * (MabinogiDamageCalculator.CriticalRank[criticalrank] / 100);
 
 	return adddamage * critical;
