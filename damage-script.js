@@ -184,6 +184,14 @@ MabinogiDamageCalculator.prototype = {
 			dmg: max.dmg,
 			pr: (max.pr * 100).toFixed(2)
 		} });
+	},
+
+	setValues : function (values) {
+		var self = this;
+		for (var k in values) if (values.hasOwnProperty(k)) {
+			if (self.form.hasOwnProperty(k)) self.form[k].value = values[k];
+		}
+		self.calc();
 	}
 };
 MabinogiDamageCalculator.calcExpectation = function (min, max, balance, cb) {
