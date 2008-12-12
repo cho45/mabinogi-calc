@@ -147,32 +147,161 @@ FH,+0,+4,80,30,7
 							<li>Dex+10 いかない prefix Dexエンチャはゴミ</li>
 							<li>suffix は基本的にろくなエンチャがない</li>
 							<li>最小ダメージをあげてもダメージ期待値のあがりは悪い。バランスが高いと最小値以下の値が殆ど発生しないため。
-								<ul>
-									<li>80-150: 133.77 (基本)</li>
-									<li>85-150: 135.06 (最小+5)</li>
-									<li>85-151: 135.81 (アーチャー/Dex+3 Min+5)</li>
-								</ul>
+								<table>
+									<thead>
+										<tr>
+											<th class="header">Desc</th>
+											<th class="header">Min</th>
+											<th class="header">Max</th>
+											<th class="header">Balance</th>
+											<th title="Critical" class="header">Cri</th>
+											<th title="Critical Rank" class="header">R.</th>
+											<th title="Exceptation" class="header headerSortUp">E.</th>
+											<th title="Exceptation(include Critical)" class="header headerSortUp">E(Cri)</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<td>アーチャー(最小+5/Dex+3)</td>
+											<td>85 <span class="delta">5.00</span></td>
+											<td>151 <span class="delta">1.00</span></td>
+											<td>80 <span class="delta">0.00</span></td>
+											<td>30 <span class="delta">0.00</span></td>
+											<td>7</td>
+											<td>134.76 <span class="delta">1.96</span></td>
+											<td>145.33 <span class="delta">2.03</span></td>
+											</tr><tr>
+											<td>最小+5</td>
+											<td>85 <span class="delta">5.00</span></td>
+											<td>150 <span class="delta">0.00</span></td>
+											<td>80 <span class="delta">0.00</span></td>
+											<td>30 <span class="delta">0.00</span></td>
+											<td>7</td>
+											<td>134.00 <span class="delta">1.20</span></td>
+											<td>144.50 <span class="delta">1.20</span></td>
+											</tr><tr>
+											<td>*基準</td>
+											<td>80 <span class="delta">0.00</span></td>
+											<td>150 <span class="delta">0.00</span></td>
+											<td>80 <span class="delta">0.00</span></td>
+											<td>30 <span class="delta">0.00</span></td>
+											<td>7</td>
+											<td>132.80 <span class="delta">0.00</span></td>
+											<td>143.30 <span class="delta">0.00</span></td>
+									</tr></tbody>
+								</table>
+								この例だと最小+5されていても期待ダメージは1程度しかあがっていない。
 							</li>
 							<li>
 								鋼玉は以下の例ぐらいのときで探検レベル18以下のときでも FH より若干有利だが、コストパフォーマンス最悪。
-								<ul>
-									<li>80-150: 133.77 (基本)</li>
-									<li>80-154: 136.79 (フォックスハンター) +3</li>
-									<li>75-156: 137.02 (鋼玉探検レベル18以下) +4</li>
-									<li>80-156: 138.30 (鋼玉探検レベル19以上) +5</li>
-								</ul>
-								<ul>
-									<li>90-170: 151.44 (基本)</li>
-									<li>90-174: 154.46 (フォックスハンター) +3</li>
-									<li>85-176: 154.69 (鋼玉探検レベル18以下) +3</li>
-									<li>90-176: 155.97 (鋼玉探検レベル19以上) +5</li>
-								</ul>
-								<ul>
-									<li>100-200: 176.66 (基本)</li>
-									<li>100-204: 179.69 (フォックスハンター) +3</li>
-									<li> 95-206: 179.92 (鋼玉探検レベル18以下) +3</li>
-									<li>100-206: 181.20 (鋼玉探検レベル19以上) +5</li>
-								</ul>
+
+								<table>
+									<thead>
+										<tr>
+											<th class="header">Desc</th>
+											<th class="header">Min</th>
+											<th class="header">Max</th>
+											<th class="header">Balance</th>
+											<th title="Critical" class="header">Cri</th>
+											<th title="Critical Rank" class="header">R.</th>
+											<th title="Exceptation" class="header headerSortUp">E.</th>
+											<th title="Exceptation(include Critical)" class="header headerSortUp">E(Cri)</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<td>鋼玉</td>
+											<td>80 <span class="delta">0.00</span></td>
+											<td>156 <span class="delta">6.00</span></td>
+											<td>80 <span class="delta">0.00</span></td>
+											<td>30 <span class="delta">0.00</span></td>
+											<td>7</td>
+											<td>137.36 <span class="delta">4.56</span></td>
+											<td>148.28 <span class="delta">4.98</span></td>
+											</tr><tr>
+											<td>鋼玉(未)</td>
+											<td>75 <span class="delta">-5.00</span></td>
+											<td>156 <span class="delta">6.00</span></td>
+											<td>80 <span class="delta">0.00</span></td>
+											<td>30 <span class="delta">0.00</span></td>
+											<td>7</td>
+											<td>136.16 <span class="delta">3.36</span></td>
+											<td>147.08 <span class="delta">3.78</span></td>
+											</tr><tr>
+											<td>FH</td>
+											<td>80 <span class="delta">0.00</span></td>
+											<td>154 <span class="delta">4.00</span></td>
+											<td>80 <span class="delta">0.00</span></td>
+											<td>30 <span class="delta">0.00</span></td>
+											<td>7</td>
+											<td>135.84 <span class="delta">3.04</span></td>
+											<td>146.62 <span class="delta">3.32</span></td>
+											</tr><tr>
+											<td>*基準</td>
+											<td>80 <span class="delta">0.00</span></td>
+											<td>150 <span class="delta">0.00</span></td>
+											<td>80 <span class="delta">0.00</span></td>
+											<td>30 <span class="delta">0.00</span></td>
+											<td>7</td>
+											<td>132.80 <span class="delta">0.00</span></td>
+											<td>143.30 <span class="delta">0.00</span></td>
+									</tr></tbody>
+								</table>
+
+
+								<table>
+									<thead>
+										<tr>
+											<th class="header">Desc</th>
+											<th class="header">Min</th>
+											<th class="header">Max</th>
+											<th class="header">Balance</th>
+											<th title="Critical" class="header">Cri</th>
+											<th title="Critical Rank" class="header">R.</th>
+											<th title="Exceptation" class="header headerSortUp">E.</th>
+											<th title="Exceptation(include Critical)" class="header headerSortUp">E(Cri)</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<td>鋼玉</td>
+											<td>90 <span class="delta">0.00</span></td>
+											<td>196 <span class="delta">6.00</span></td>
+											<td>80 <span class="delta">0.00</span></td>
+											<td>30 <span class="delta">0.00</span></td>
+											<td>7</td>
+											<td>170.15 <span class="delta">4.56</span></td>
+											<td>183.87 <span class="delta">4.98</span></td>
+											</tr><tr>
+											<td>鋼玉(未)</td>
+											<td>85 <span class="delta">-5.00</span></td>
+											<td>196 <span class="delta">6.00</span></td>
+											<td>80 <span class="delta">0.00</span></td>
+											<td>30 <span class="delta">0.00</span></td>
+											<td>7</td>
+											<td>168.95 <span class="delta">3.36</span></td>
+											<td>182.67 <span class="delta">3.78</span></td>
+											</tr><tr>
+											<td>FH</td>
+											<td>90 <span class="delta">0.00</span></td>
+											<td>194 <span class="delta">4.00</span></td>
+											<td>80 <span class="delta">0.00</span></td>
+											<td>30 <span class="delta">0.00</span></td>
+											<td>7</td>
+											<td>168.63 <span class="delta">3.04</span></td>
+											<td>182.21 <span class="delta">3.32</span></td>
+											</tr><tr>
+											<td>*基準</td>
+											<td>90 <span class="delta">0.00</span></td>
+											<td>190 <span class="delta">0.00</span></td>
+											<td>80 <span class="delta">0.00</span></td>
+											<td>30 <span class="delta">0.00</span></td>
+											<td>7</td>
+											<td>165.59 <span class="delta">0.00</span></td>
+											<td>178.89 <span class="delta">0.00</span></td>
+									</tr></tbody>
+								</table>
+
 							</li>
 						</ul>
 

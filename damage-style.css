@@ -118,3 +118,26 @@ pre {
 	font-size: 80%;
 	color: #444;
 }
+
+table {
+	font-size: 8pt;
+	width: 100%;
+	margin: 10px 0pt 15px;
+	background: #cdcdcd;
+	text-align: left;
+}
+
+tableg thead tr th,
+table tfoot tr th {
+	background: #e6eeee;
+	border: 1px solid #fff;
+	font-size: 8pt;
+	padding: 4px;
+}
+
+table tbody td {
+	color: #3D3D3D;
+	padding: 4px;
+	background: #FFF;
+	vertical-align: top;
+}
