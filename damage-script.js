@@ -331,10 +331,10 @@ $(function () {
 				log((Number(data.expectation), reference.expectation));
 				data.expectationdelta   =  (data.expectation   - reference.expectation).toFixed(2);
 				data.expdmgwithcridelta =  (data.expdmgwithcri - reference.expdmgwithcri).toFixed(2);
-				data.mindelta           =  (data.min   - reference.min).toFixed(2);
-				data.maxdelta           =  (data.max   - reference.max).toFixed(2);
-				data.balancedelta       =  (data.balance   - reference.balance).toFixed(2);
-				data.criticaldelta      =  (data.critical   - reference.critical).toFixed(2);
+				data.mindelta           =  (data.min           - reference.min).toFixed(2);
+				data.maxdelta           =  (data.max           - reference.max).toFixed(2);
+				data.balancedelta       =  (data.balance       - reference.balance).toFixed(2);
+				data.criticaldelta      =  (data.critical      - reference.critical).toFixed(2);
 			}
 
 			$E(tmpl, { parent: tbody[0], data : data });
