@@ -235,7 +235,7 @@ MabinogiDamageCalculator.calcExpectation = function (min, max, balance, cb) {
 };
 MabinogiDamageCalculator.calcCriticalAddtionalDamageExpectation = function (max, critical, criticalrank) {
 	criticalrank = criticalrank.toUpperCase();
-	critical     = Number(criticalrank) / 100;
+	critical     = Number(critical) / 100;
 
 	var adddamage = Number(max) * (MabinogiDamageCalculator.CriticalRank[criticalrank] / 100);
 
@@ -340,7 +340,7 @@ $(function () {
 			$E(tmpl, { parent: tbody[0], data : data });
 		});
 
-		var sorting = [ [6, 1], [7, 1] ];
+		var sorting = [ [7, 1], [6, 1] ];
 
 		table.trigger("update");
 		table.trigger("sorton", [sorting]);
