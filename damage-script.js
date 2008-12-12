@@ -1,12 +1,13 @@
 
 function $E (str, opts) {
-	if (!opts) opts = { data: {} };
+	if (!opts) opts = { };
+	if (!opts.data) opts.data = { };
 
 	var t, cur = opts.parent || document.createDocumentFragment(), ret = {}, stack = [cur];
 	while (str.length) {
 		if (str.indexOf("<") == 0) {
 			if ((t = str.match(/^\s*<(\/?[^\s>\/]+)([^>]+?)?(\/)?>/))) {
-				var tag = t[1], attrs = t[2], isempty = !!t[3];
+				var tag = t[1], attrs = t[2], isempty = !!t[3] || tag == "input";
 				if (tag.indexOf("/") == -1) {
 					child = document.createElement(tag);
 					if (attrs) attrs.replace(/([a-z]+)=(?:'([^']+)'|"([^"]+)")/gi,
@@ -36,7 +37,7 @@ function $E (str, opts) {
 				                  {"lt":"<","gt":"<","amp":"&"}[ref];
 			})
 			.replace(/#\{([^}]+)\}/g, function (_, name) {
-				return opts.data[name] || "";
+				return (typeof(opts.data[name]) == "undefined") ? _ : opts.data[name];
 			});
 	}
 
@@ -110,14 +111,83 @@ $.fn.extend({
 });
 
 
-function MabinogiDamageCalculator () { this.init.apply(this, arguments) }
-MabinogiDamageCalculator.prototype = {
+MabinogiDamageCalculator = {
+	calcExpectation : function (min, max, balance, cb) {
+		if (!cb) cb = function () {};
+		if (min > max) max = min;
+
+		var variance = 0.0835 * Math.pow(max - min, 2);
+		var average  = (max - min) * (balance / 100) + min;
+
+		// 正規分布の累積分布関数生成関数
+		function make_normal_distribution_function (variance, average) {
+			var a   = Math.sqrt(variance) * Math.sqrt(2);
+			var erf = function (x) {
+				return ((x < 0.0) ? -1 : 1) * Math.pow(1.0 - Math.exp(-1.27323954 * x * x), 0.5);
+			};
+
+			return function (x) {
+				return (1 + erf((x - average) / a)) / 2;
+			};
+		}
+
+		var nd = make_normal_distribution_function(variance, average);
+		var pr = function (x) {
+			switch (true) {
+				case x <  min: return 0;
+				case x == min: return nd(x + 1);
+				case x == max: return 1 - nd(x);
+				case x >  max: return 0;
+				default:       return nd(x + 1) - nd(x);
+			}
+		};
+
+		var ret = 0, t = 0;
+		for (var i = min; i <= max; i++) {
+			t = pr(i);
+			cb(t, i);
+			ret += t * i;
+		}
+
+		return ret;
+	},
+
+	calcCriticalAddtionalDamageExpectation : function (max, critical, criticalrank) {
+		criticalrank = criticalrank.toUpperCase();
+		critical     = Number(critical) / 100;
+
+		var adddamage = Number(max) * (MabinogiDamageCalculator.CriticalRank[criticalrank] / 100);
+
+		return adddamage * critical;
+	},
+
+	CriticalRank : {
+		F: 50,
+		E: 55,
+		D: 60,
+		C: 65,
+		B: 70,
+		A: 75,
+		9: 90,
+		8: 95,
+		7: 100,
+		6: 105,
+		5: 110,
+		4: 120,
+		3: 130,
+		2: 140,
+		1: 150
+	}
+};
+
+MabinogiDamageCalculator.SingleCalculator = function () { this.init.apply(this, arguments) };
+MabinogiDamageCalculator.SingleCalculator.Inputs = ["min", "max", "critical", "criticalrank", "balance"];
+MabinogiDamageCalculator.SingleCalculator.prototype = {
 	init : function (template, parent) {
 		var self = this;
+		self.form = $E(template, { parent: parent });
 
-		this.form = $E(template, { parent: parent });
-
-		$.each(MabinogiDamageCalculator.Inputs, function (i) {
+		$.each(MabinogiDamageCalculator.SingleCalculator.Inputs, function (i) {
 			var name = this;
 			var input = $(self.form[name]);
 			input
@@ -194,157 +264,99 @@ MabinogiDamageCalculator.prototype = {
 		self.calc();
 	}
 };
-MabinogiDamageCalculator.calcExpectation = function (min, max, balance, cb) {
-	if (!cb) cb = function () {};
-	if (min > max) max = min;
 
-	var variance = 0.0835 * Math.pow(max - min, 2);
-	var average  = (max - min) * (balance / 100) + min;
+MabinogiDamageCalculator.MultiCalculator = function () { this.init.apply(this, arguments) };
+MabinogiDamageCalculator.MultiCalculator.prototype = {
+	init : function (template, parent) {
+		var self = this;
+		self.form = $E(template, { parent: parent });
 
-	// 正規分布の累積分布関数生成関数
-	function make_normal_distribution_function (variance, average) {
-		var a   = Math.sqrt(variance) * Math.sqrt(2);
-		var erf = function (x) {
-			return ((x < 0.0) ? -1 : 1) * Math.pow(1.0 - Math.exp(-1.27323954 * x * x), 0.5);
-		};
+		var input   = $(self.form.input);
+		var button  = $(self.form.calcbtn);
+		var table   = $(self.form.tablesorter);
+		var tbody   = table.find("tbody");
+		var tmpl    = tbody.html();
+		table.tablesorter();
+		tbody.empty();
 
-		return function (x) {
-			return (1 + erf((x - average) / a)) / 2;
-		};
+
+		button.click(function () { try {
+			var reference = null;
+
+			var inputs = input.val().split(/\n/).map(function (d) {
+				var data =  d.replace(/\s+/g, "").split(",");
+				data = {
+					description  : data[0],
+					min          : data[1],
+					max          : data[2],
+					balance      : data[3],
+					critical     : data[4],
+					criticalrank : data[5]
+				};
+				if (!data.description) return null;
+
+				if (data.description.match(/^\*/)) reference = data;
+
+				return data;
+			});
+
+			log("ref");
+			log(reference);
+
+			tbody.empty();
+			inputs.forEach(function (data) {
+				if (!data) return;
+
+				log(data);
+				if (reference) {
+					for (var k in data) if (data.hasOwnProperty(k)) {
+						if (/^[+-]/.test(data[k])) data[k] = Number(data[k]) + Number(reference[k]);
+					}
+				}
+
+				data.expectation   = MabinogiDamageCalculator.calcExpectation(
+					Number(data.min),
+					Number(data.max),
+					Number(data.balance)
+				);
+				data.expdmgwithcri = data.expectation + MabinogiDamageCalculator.calcCriticalAddtionalDamageExpectation(
+					Number(data.max),
+					Number(data.critical),
+					data.criticalrank
+				);
+
+				data.expectationout   = data.expectation.toFixed(2);
+				data.expdmgwithcriout = data.expdmgwithcri.toFixed(2);
+
+				if (reference) {
+					log((Number(data.expectation), reference.expectation));
+					data.expectationdelta   =  (data.expectation   - reference.expectation).toFixed(2);
+					data.expdmgwithcridelta =  (data.expdmgwithcri - reference.expdmgwithcri).toFixed(2);
+					data.mindelta           =  (data.min           - reference.min).toFixed(2);
+					data.maxdelta           =  (data.max           - reference.max).toFixed(2);
+					data.balancedelta       =  (data.balance       - reference.balance).toFixed(2);
+					data.criticaldelta      =  (data.critical      - reference.critical).toFixed(2);
+				}
+
+				$E(tmpl, { parent: tbody[0], data : data });
+			});
+
+			var sorting = [ [6, 1], [7, 1] ];
+
+			table.trigger("update");
+			table.trigger("sorton", [sorting]);
+		} catch (e) { alert(e) } });
+
+		button.click();
 	}
-
-	var nd = make_normal_distribution_function(variance, average);
-	var pr = function (x) {
-		switch (true) {
-			case x <  min: return 0;
-			case x == min: return nd(x + 1);
-			case x == max: return 1 - nd(x);
-			case x >  max: return 0;
-			default:       return nd(x + 1) - nd(x);
-		}
-	};
-
-	var ret = 0, t = 0;
-	for (var i = min; i <= max; i++) {
-		t = pr(i);
-		cb(t, i);
-		ret += t * i;
-	}
-
-	return ret;
-};
-MabinogiDamageCalculator.calcCriticalAddtionalDamageExpectation = function (max, critical, criticalrank) {
-	criticalrank = criticalrank.toUpperCase();
-	critical     = Number(critical) / 100;
-
-	var adddamage = Number(max) * (MabinogiDamageCalculator.CriticalRank[criticalrank] / 100);
-
-	return adddamage * critical;
-};
-
-MabinogiDamageCalculator.Inputs = ["min", "max", "critical", "criticalrank", "balance"];
-MabinogiDamageCalculator.CriticalRank = {
-	F: 50,
-	E: 55,
-	D: 60,
-	C: 65,
-	B: 70,
-	A: 75,
-	9: 90,
-	8: 95,
-	7: 100,
-	6: 105,
-	5: 110,
-	4: 120,
-	3: 130,
-	2: 140,
-	1: 150
-};
+}
 
 $(function () {
 	var template = $("#calc-template").val();
 	var parent   = $("#calc-template").parent();
-	new MabinogiDamageCalculator(template, parent[0]);
+	var single   = new MabinogiDamageCalculator.SingleCalculator(template, parent[0]);
 
-
-	// TODO: あとで分離
-
-	var calcall = $("#calcall");
-	var input   = calcall.find("textarea");
-	var button  = calcall.find("input[type='button']");
-	var table   = calcall.find("table");
-	var tbody   = table.find("tbody");
-	var tmpl    = tbody.html();
-	table.tablesorter();
-	tbody.empty();
-
-
-	button.click(function () { try {
-		var reference = null;
-
-		var inputs = input.val().split(/\n/).map(function (d) {
-			var data =  d.replace(/\s+/g, "").split(",");
-			data = {
-				description  : data[0],
-				min          : data[1],
-				max          : data[2],
-				balance      : data[3],
-				critical     : data[4],
-				criticalrank : data[5]
-			};
-			if (!data.description) return null;
-
-			if (data.description.match(/^\*/)) reference = data;
-
-			return data;
-		});
-
-		log("ref");
-		log(reference);
-
-		tbody.empty();
-		inputs.forEach(function (data) {
-			if (!data) return;
-
-			log(data);
-			if (reference) {
-				for (var k in data) if (data.hasOwnProperty(k)) {
-					if (/^[+-]/.test(data[k])) data[k] = Number(data[k]) + Number(reference[k]);
-				}
-			}
-
-			data.expectation   = MabinogiDamageCalculator.calcExpectation(
-				Number(data.min),
-				Number(data.max),
-				Number(data.balance)
-			);
-			data.expdmgwithcri = data.expectation + MabinogiDamageCalculator.calcCriticalAddtionalDamageExpectation(
-				Number(data.max),
-				Number(data.critical),
-				data.criticalrank
-			);
-
-			data.expectationout   = data.expectation.toFixed(2);
-			data.expdmgwithcriout = data.expdmgwithcri.toFixed(2);
-
-			if (reference) {
-				log((Number(data.expectation), reference.expectation));
-				data.expectationdelta   =  (data.expectation   - reference.expectation).toFixed(2);
-				data.expdmgwithcridelta =  (data.expdmgwithcri - reference.expdmgwithcri).toFixed(2);
-				data.mindelta           =  (data.min           - reference.min).toFixed(2);
-				data.maxdelta           =  (data.max           - reference.max).toFixed(2);
-				data.balancedelta       =  (data.balance       - reference.balance).toFixed(2);
-				data.criticaldelta      =  (data.critical      - reference.critical).toFixed(2);
-			}
-
-			$E(tmpl, { parent: tbody[0], data : data });
-		});
-
-		var sorting = [ [6, 1], [7, 1] ];
-
-		table.trigger("update");
-		table.trigger("sorton", [sorting]);
-	} catch (e) { alert(e) } });
-
-	button.click();
+	var template = $("#calcall").html();
+	var parent   = $("#calcall").empty();
+	var multi   = new MabinogiDamageCalculator.MultiCalculator(template, parent[0]);
 });
