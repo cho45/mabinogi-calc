@@ -294,17 +294,6 @@ $(function () {
 			};
 			if (!data.description) return null;
 
-			data.expectation   = MabinogiDamageCalculator.calcExpectation(
-				Number(data.min),
-				Number(data.max),
-				Number(data.balance)
-			);
-			data.expdmgwithcri = data.expectation + MabinogiDamageCalculator.calcCriticalAddtionalDamageExpectation(
-				Number(data.max),
-				Number(data.critical),
-				data.criticalrank
-			);
-
 			if (data.description.match(/^\*/)) reference = data;
 
 			return data;
@@ -318,6 +307,22 @@ $(function () {
 			if (!data) return;
 
 			log(data);
+			if (reference) {
+				for (var k in data) if (data.hasOwnProperty(k)) {
+					if (/^[+-]/.test(data[k])) data[k] = Number(data[k]) + Number(reference[k]);
+				}
+			}
+
+			data.expectation   = MabinogiDamageCalculator.calcExpectation(
+				Number(data.min),
+				Number(data.max),
+				Number(data.balance)
+			);
+			data.expdmgwithcri = data.expectation + MabinogiDamageCalculator.calcCriticalAddtionalDamageExpectation(
+				Number(data.max),
+				Number(data.critical),
+				data.criticalrank
+			);
 
 			data.expectationout   = data.expectation.toFixed(2);
 			data.expdmgwithcriout = data.expdmgwithcri.toFixed(2);
