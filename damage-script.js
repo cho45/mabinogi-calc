@@ -340,7 +340,7 @@ $(function () {
 			$E(tmpl, { parent: tbody[0], data : data });
 		});
 
-		var sorting = [ [7, 1], [6, 1] ];
+		var sorting = [ [6, 1], [7, 1] ];
 
 		table.trigger("update");
 		table.trigger("sorton", [sorting]);
