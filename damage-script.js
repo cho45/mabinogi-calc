@@ -271,83 +271,86 @@ MabinogiDamageCalculator.MultiCalculator.prototype = {
 		var self = this;
 		self.form = $E(template, { parent: parent });
 
-		var input   = $(self.form.input);
+		self.table = $(self.form.tablesorter);
+		self.tbody = self.table.find("tbody");
+		self.tmpl  = self.tbody.html();
+
+		self.table.tablesorter();
+		self.tbody.empty();
+
 		var button  = $(self.form.calcbtn);
-		var table   = $(self.form.tablesorter);
-		var tbody   = table.find("tbody");
-		var tmpl    = tbody.html();
-		table.tablesorter();
-		tbody.empty();
+		button.click(function () { self.calc() });
 
+		self.calc();
+	},
 
-		button.click(function () { try {
-			var reference = null;
+	calc : function () {
+		var self = this;
 
-			var inputs = input.val().split(/\n/).map(function (d) {
-				var data =  d.replace(/\s+/g, "").split(",");
-				data = {
-					description  : data[0],
-					min          : data[1],
-					max          : data[2],
-					balance      : data[3],
-					critical     : data[4],
-					criticalrank : data[5]
-				};
-				if (!data.description) return null;
+		var reference = null;
 
-				if (data.description.match(/^\*/)) reference = data;
+		var inputs = $(self.form.input).val().split(/\n/).map(function (d) {
+			var data =  d.replace(/\s+/g, "").split(",");
+			data = {
+				description  : data[0],
+				min          : data[1],
+				max          : data[2],
+				balance      : data[3],
+				critical     : data[4],
+				criticalrank : data[5]
+			};
+			if (!data.description) return null;
 
-				return data;
-			});
+			if (data.description.match(/^\*/)) reference = data;
 
-			log("ref");
-			log(reference);
+			return data;
+		});
 
-			tbody.empty();
-			inputs.forEach(function (data) {
-				if (!data) return;
+		log("ref");
+		log(reference);
 
-				log(data);
-				if (reference) {
-					for (var k in data) if (data.hasOwnProperty(k)) {
-						if (/^[+-]/.test(data[k])) data[k] = Number(data[k]) + Number(reference[k]);
-					}
+		self.tbody.empty();
+		inputs.forEach(function (data) {
+			if (!data) return;
+
+			log(data);
+			if (reference) {
+				for (var k in data) if (data.hasOwnProperty(k)) {
+					if (/^[+-]/.test(data[k])) data[k] = Number(data[k]) + Number(reference[k]);
 				}
+			}
 
-				data.expectation   = MabinogiDamageCalculator.calcExpectation(
-					Number(data.min),
-					Number(data.max),
-					Number(data.balance)
-				);
-				data.expdmgwithcri = data.expectation + MabinogiDamageCalculator.calcCriticalAddtionalDamageExpectation(
-					Number(data.max),
-					Number(data.critical),
-					data.criticalrank
-				);
+			data.expectation   = MabinogiDamageCalculator.calcExpectation(
+				Number(data.min),
+				Number(data.max),
+				Number(data.balance)
+			);
+			data.expdmgwithcri = data.expectation + MabinogiDamageCalculator.calcCriticalAddtionalDamageExpectation(
+				Number(data.max),
+				Number(data.critical),
+				data.criticalrank
+			);
 
-				data.expectationout   = data.expectation.toFixed(2);
-				data.expdmgwithcriout = data.expdmgwithcri.toFixed(2);
+			data.expectationout   = data.expectation.toFixed(2);
+			data.expdmgwithcriout = data.expdmgwithcri.toFixed(2);
 
-				if (reference) {
-					log((Number(data.expectation), reference.expectation));
-					data.expectationdelta   =  (data.expectation   - reference.expectation).toFixed(2);
-					data.expdmgwithcridelta =  (data.expdmgwithcri - reference.expdmgwithcri).toFixed(2);
-					data.mindelta           =  (data.min           - reference.min).toFixed(2);
-					data.maxdelta           =  (data.max           - reference.max).toFixed(2);
-					data.balancedelta       =  (data.balance       - reference.balance).toFixed(2);
-					data.criticaldelta      =  (data.critical      - reference.critical).toFixed(2);
-				}
+			if (reference) {
+				log((Number(data.expectation), reference.expectation));
+				data.expectationdelta   =  (data.expectation   - reference.expectation).toFixed(2);
+				data.expdmgwithcridelta =  (data.expdmgwithcri - reference.expdmgwithcri).toFixed(2);
+				data.mindelta           =  (data.min           - reference.min).toFixed(2);
+				data.maxdelta           =  (data.max           - reference.max).toFixed(2);
+				data.balancedelta       =  (data.balance       - reference.balance).toFixed(2);
+				data.criticaldelta      =  (data.critical      - reference.critical).toFixed(2);
+			}
 
-				$E(tmpl, { parent: tbody[0], data : data });
-			});
+			$E(self.tmpl, { parent: self.tbody[0], data : data });
+		});
 
-			var sorting = [ [6, 1], [7, 1] ];
+		var sorting = [ [6, 1], [7, 1] ];
 
-			table.trigger("update");
-			table.trigger("sorton", [sorting]);
-		} catch (e) { alert(e) } });
-
-		button.click();
+		self.table.trigger("update");
+		self.table.trigger("sorton", [sorting]);
 	}
 }
 
