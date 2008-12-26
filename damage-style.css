@@ -18,6 +18,13 @@ textarea.template {
 	display: none;
 }
 
+del * {
+	text-decoration: line-through;
+}
+
+ins {
+}
+
 
 body {
 	line-height: 1.66;
