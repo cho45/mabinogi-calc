@@ -342,6 +342,13 @@ MabinogiDamageCalculator.MultiCalculator.prototype = {
 				data.maxdelta           =  (data.max           - reference.max).toFixed(2);
 				data.balancedelta       =  (data.balance       - reference.balance).toFixed(2);
 				data.criticaldelta      =  (data.critical      - reference.critical).toFixed(2);
+			} else {
+				data.expectationdelta   = "";
+				data.expdmgwithcridelta = "";
+				data.mindelta           = "";
+				data.maxdelta           = "";
+				data.balancedelta       = "";
+				data.criticaldelta      = "";
 			}
 
 			$E(self.tmpl, { parent: self.tbody[0], data : data });
