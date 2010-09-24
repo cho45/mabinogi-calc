@@ -59,7 +59,8 @@ sub extract {
 	$img->read(file => $image) or croak $img->errstr;
 	$img = $img->convert(preset => 'grey');
 	$img = $img->map(all => [ map { $_ > 127 ? 255 : 0 } (0..255)  ]);
-	$DEBUG && $img->write(file => '/tmp/test.png', type => 'png') or die $img->errstr;
+
+	$DEBUG and ($img->write(file => '/tmp/test.png', type => 'png') or die $img->errstr);
 
 	my ($x, $y);
 	($x, $y) = template_match($img, $tmpl);
@@ -80,7 +81,7 @@ sub extract {
 	];
 
 	my $chars = {};
-	$DEBUG && $img->write(file => '/tmp/test.png', type => 'png') or die $img->errstr;
+	$DEBUG and ($img->write(file => '/tmp/test.png', type => 'png') or die $img->errstr);
 	for my $number (@$numbers) {
 		my @matched = template_match($img, $number->{tmpl});
 		my $n = $number->{n};

@@ -4,7 +4,7 @@ use warnings;
 
 use Test::Most;
 use Mabinogi::Extractor::Attack;
-$Mabinogi::Extractor::Attack::DEBUG = 1;
+$Mabinogi::Extractor::Attack::DEBUG = $ENV{DEBUG};
 
 subtest "t/data/mabinogi_2009_10_01_005.jpg" => sub {
 	my $result = Mabinogi::Extractor::Attack->extract('t/data/mabinogi_2009_10_01_005.jpg');
