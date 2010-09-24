@@ -5,6 +5,7 @@ use warnings;
 
 use Path::Class;
 our $TEMPLATE_DIR = file(__FILE__)->parent->subdir('tmpl');
+our $DEBUG = 0;
 use Carp;
 
 use Imager;
@@ -24,18 +25,20 @@ void template_match(Imager::ImgRaw img, Imager::ImgRaw tmpl) {
 			i_gpix(tmpl, tx, ty, &tmpl_color);
 			i_gpix(img, x + tx, y + ty, &img_color);
 			// if (img->ysize == 50 && y == 1 && x == 55) printf("t:%d\ti:%d (x:%d, y:%d)\n", tmpl_color.gray.gray_color, img_color.gray.gray_color, x, y);
-			if (tmpl_color.gray.gray_color) {
+			if (tmpl_color.gray.gray_color == 255) {
 				if (img_color.gray.gray_color == 255) {
 					continue;
 				} else {
 					goto next;
+				}
+			} else if (tmpl_color.gray.gray_color == 0) {
+				if (img_color.gray.gray_color == 255) {
+					goto next;
+				} else {
+					continue;
 				}
 			} else {
-				if (img_color.gray.gray_color == 255) {
-					goto next;
-				} else {
-					continue;
-				}
+				continue;
 			}
 		}
 
@@ -51,14 +54,18 @@ sub extract {
 	my ($class, $image) = @_;
 
 	my $tmpl = Imager->new;
-	$tmpl->read(file => $TEMPLATE_DIR->file('dmg.png'));
+	$tmpl->read(file => $TEMPLATE_DIR->file('attack.png'));
 	my $img = Imager->new;
 	$img->read(file => $image) or croak $img->errstr;
-	$img = $img->map(all => [ map { $_ > 127 ? 255 : 0 } (0..255)  ]);
 	$img = $img->convert(preset => 'grey');
+	$img = $img->map(all => [ map { $_ > 127 ? 255 : 0 } (0..255)  ]);
+	$DEBUG && $img->write(file => '/tmp/test.png', type => 'png') or die $img->errstr;
 
-	my ($x, $y) = template_match($img, $tmpl) or croak "couldn't find template";
-	$img = $img->crop(left => $x, top => $y, width => 119, height => 50);
+	my ($x, $y);
+	($x, $y) = template_match($img, $tmpl);
+	($x, $y) = template_match($img, $tmpl->filter(type=>"hardinvert")) unless defined $x;
+	defined $x or croak "couldn't find template";
+	$img = $img->crop(left => $x + 15, top => $y + 10, width => 80, height => 55);
 
 	my $numbers = [
 		map {
@@ -73,7 +80,7 @@ sub extract {
 	];
 
 	my $chars = {};
-	# $img->write(file => '/tmp/test.png', type => 'png') or die $img->errstr;
+	$DEBUG && $img->write(file => '/tmp/test.png', type => 'png') or die $img->errstr;
 	for my $number (@$numbers) {
 		my @matched = template_match($img, $number->{tmpl});
 		my $n = $number->{n};
@@ -82,11 +89,10 @@ sub extract {
 		}
 	}
 
-
 	my $res = [];
-	for my $y (sort keys %$chars) {
+	for my $y (qw/3 16 29 42/) {
 		push @$res, '';
-		for my $x (sort keys %{ $chars->{$y} }) {
+		for my $x (sort { $a <=> $b } keys %{ $chars->{$y} }) {
 			$res->[-1] .= $chars->{$y}{$x};
 		}
 	}
