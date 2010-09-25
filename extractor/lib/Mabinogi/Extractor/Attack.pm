@@ -2,6 +2,8 @@ package Mabinogi::Extractor::Attack;
 
 use strict;
 use warnings;
+use base qw(Class::Data::Inheritable);
+__PACKAGE__->mk_classdata('templates' => {});
 
 use Path::Class;
 our $TEMPLATE_DIR = file(__FILE__)->parent->subdir('tmpl');
@@ -26,14 +28,17 @@ void template_match(Imager::ImgRaw img, Imager::ImgRaw tmpl, int all) {
 		for (ty = 0; ty < tmpl->ysize; ty++) for (tx = 0; tx < tmpl->xsize; tx++) {
 			i_gpix(tmpl, tx, ty, &tmp_color);
 			tmpl_color = tmp_color.gray.gray_color;
-			i_gpix(img, x + tx, y + ty, &tmp_color);
-			img_color  = tmp_color.gray.gray_color;
-			is_white = img_color == 255;
-			if (tmpl_color == 255 && !is_white) {
-				goto next;
+			if (tmpl_color == 255) {
+				i_gpix(img, x + tx, y + ty, &tmp_color);
+				img_color  = tmp_color.gray.gray_color;
+				is_white = img_color == 255;
+				if (!is_white) goto next;
 			} else
-			if (tmpl_color ==   0 &&  is_white) {
-				goto next;
+			if (tmpl_color ==   0) {
+				i_gpix(img, x + tx, y + ty, &tmp_color);
+				img_color  = tmp_color.gray.gray_color;
+				is_white = img_color == 255;
+				if (is_white) goto next;
 			}
 		}
 
@@ -49,11 +54,22 @@ void template_match(Imager::ImgRaw img, Imager::ImgRaw tmpl, int all) {
 }
 EOS
 
+sub _template {
+	my ($class, $name) = @_;
+	unless ($class->templates->{$name}) {
+		$class->templates->{$name} = do {
+			my $img = Imager->new;
+			$img->read(file => $TEMPLATE_DIR->file("$name.png"));
+			$img;
+		};
+	}
+	$class->templates->{$name};
+}
+
 sub extract {
 	my ($class, $image) = @_;
 
-	my $tmpl = Imager->new;
-	$tmpl->read(file => $TEMPLATE_DIR->file('attack.png'));
+	my $tmpl = $class->_template('attack');
 	$tmpl = $tmpl->crop(left => 1, top => 1); # 枝刈り用に白が最初にくるように調整
 
 	my $img = Imager->new;
@@ -72,11 +88,9 @@ sub extract {
 
 	my $numbers = [
 		map {
-			my $img = Imager->new;
-			$img->read(file => $TEMPLATE_DIR->file("$_.png")) or die $img->errstr;
 			+{
 				n => $_,
-				tmpl => $img,
+				tmpl => $class->_template($_),
 			};
 		}
 		(0 .. 9, '~', '.')
