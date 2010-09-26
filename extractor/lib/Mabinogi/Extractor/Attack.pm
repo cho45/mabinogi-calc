@@ -17,7 +17,6 @@ void template_match(Imager::ImgRaw img, Imager::ImgRaw tmpl, int all) {
 	int x, y, tx, ty;
 	i_color tmp_color;
 	unsigned char img_color, tmpl_color;
-	unsigned char is_white;
 	// printf("img: w:%d h:%d, tmpl: w:%d, h:%d\n", img->xsize, img->ysize, tmpl->xsize, tmpl->ysize);
 
 	Inline_Stack_Vars;
@@ -31,14 +30,12 @@ void template_match(Imager::ImgRaw img, Imager::ImgRaw tmpl, int all) {
 			if (tmpl_color == 255) {
 				i_gpix(img, x + tx, y + ty, &tmp_color);
 				img_color  = tmp_color.gray.gray_color;
-				is_white = img_color == 255;
-				if (!is_white) goto next;
+				if (img_color != 255) goto next;
 			} else
 			if (tmpl_color ==   0) {
 				i_gpix(img, x + tx, y + ty, &tmp_color);
 				img_color  = tmp_color.gray.gray_color;
-				is_white = img_color == 255;
-				if (is_white) goto next;
+				if (img_color == 255) goto next;
 			}
 		}
 
