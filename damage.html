@@ -2,20 +2,168 @@
 <html>
 	<head>
 		<title>mabinogi ダメージ計算機</title>
+		<script charset="utf-8" src="http://code.jquery.com/jquery-1.4.2.min.js"></script>
+		<script charset="utf-8" src="./jquery-ui-1.8.5.custom.min.js"></script>
+		<script charset="utf-8" src="./jquery.upload-1.0.2.min.js"></script>
+		<script charset="utf-8" src="damage-script.js"></script>
 		<style>
 			body {
 				background: #666;
 				color: #fff;
 				font-size: 12px;
+				padding: 50px 0 0;
+				margin: 0;
 			}
 
-			div.input {
-				width: 20em;
+			.ui-dialog .ui-dialog-titlebar {
+				display: none;
+			}
+
+			.ui-widget-overlay {
+				position: absolute;
+				top: 0;
+				left: 0;
+				background: #000;
+				opacity: 0.8;
+			}
+
+			.hidden {
+				display: none;
+			}
+
+			.up ,
+			.down {
+				color: #fff;
+				background: #111;
+				-webkit-box-shadow: inset 0 0 4px #000;
+				-moz-box-shadow: inset 0 0 4px #000;
+				box-shadow: inset 0 0 4px #000;
+			}
+
+			input[type=text] {
+				border: 1px solid #000;
+				color: #fff;
+				background: #111;
+				text-align: right;
+				padding: 2px;
+				-webkit-box-shadow: inset 0 0 4px #000;
+				-moz-box-shadow: inset 0 0 4px #000;
+				box-shadow: inset 0 0 4px #000;
 			}
 
 			ol {
 				padding: 0 0 0 2em;
 				margin: 1em 0;
+			}
+
+			dl.input ,
+			dl.output {
+				line-height: 1.33;
+			}
+
+			dl.input dt ,
+			dl.output dt {
+				font-weight: bold;
+				width: 8em;
+			}
+
+			dl.input dd ,
+			dl.output dd {
+				margin: -1.33em 0 0.33em 8em;
+			}
+
+			dl.output dd {
+				font-size: 19px;
+				color: #ff0;
+				font-weight: bold;
+				text-shadow:
+					-1px -1px 0 #000,
+					1px -1px 0 #000,
+					-1px 1px 0 #000,
+					1px 1px 0 #000;
+			}
+
+			#compare {
+				width: 460px;
+			}
+
+			table {
+				display: block;
+				opacity: 0.9;
+				padding: 5px;
+				border-spacing: 5px;
+				width: 460px;
+			}
+
+			table thead ,
+			table tbody {
+				display: block;
+			}
+
+			table thead {
+				margin: 0 -4px;
+			}
+
+			table tr th {
+				padding: 1px;
+				margin: 2px;
+				border: 1px solid #111;
+			}
+
+			table tr th:hover {
+				-webkit-box-shadow: inset 0 0 8px #fff;
+				-moz-box-shadow: inset 0 0 8px #fff;
+				box-shadow: inset 0 0 8px #fff;
+				cursor: pointer;
+			}
+
+			table tr th.expectation {
+				width: 106px;
+				text-align: center;
+			}
+
+			table tr th.damage {
+				width: 111px;
+				text-align: center;
+			}
+
+			table tr td.expectation {
+				width: 100px;
+				text-align: center;
+			}
+
+			table .critical {
+				width: 100px;
+				text-align: center;
+			}
+
+			table .balance {
+				width: 100px;
+				text-align: center;
+			}
+
+			table .damage {
+				width: 100px;
+				text-align: center;
+			}
+
+			table tbody tr {
+				display: block;
+				margin: 4px 0;
+				-webkit-box-shadow: inset 0 0 7px #000, inset 0px 1px 1px rgba(255, 255, 255, 1);
+				-webkit-border-radius: 2px;
+				-moz-box-shadow: inset 0 0 7px #000, inset 0px 1px 2px rgba(255, 255, 255, 1);
+				-moz-border-radius: 2px;
+				box-shadow: inset 0 0 7px #000, inset 0px 1px 1px rgba(255, 255, 255, 1);
+				border: 2px solid #000;
+			}
+
+			table tr td {
+				border: 1px solid #000000;
+				-webkit-box-shadow: inset 0 0 1px #000;
+				-moz-box-shadow: inset 0 0 1px #000;
+				box-shadow: inset 0 0 1px #000;
+				padding: 5px 1px;
 			}
 
 			button {
@@ -42,13 +190,11 @@
 				box-shadow: inset 0 0 4px #000, inset 0px -2px 1px #fff;
 			}
 
-			#upload {
-				position: absolute;
-				margin: 0 auto;
-				width: 600px;
-			}
-
 			.dialog {
+				opacity: 0.9;
+				top: 0;
+				width: 500px;
+				margin: 20px;
 				padding: 20px;
 				font-size: 11px;
 				color: #fff;
@@ -66,52 +212,145 @@
 
 			.dialog .header {
 				margin: -10px 0 10px;
-				font-size: 16px;
+				font-size: 18px;
 				font-weight: bold;
-				text-shadow:
-					-1px -1px 0 #000,
-					1px -1px 0 #000,
-					-1px 1px 0 #000,
-					1px 1px 0 #000;
 				opacity: 0.9;
 			}
 
+			.dialog .close {
+				position: absolute;
+				top: 5px;
+				right: 30px;
+				cursor: pointer;
+			}
+
+			.dialog::after {
+				clear: both;
+				display: block;
+				content: '';
+			}
+
 			div.button {
-				padding: 1em;
-				text-align: center;
+				padding: 1em 0;
+				text-align: right;
 			}
 
 			p {
 				margin: 0 0 1em 0;
 			}
+
+			#main {
+				position: relative;
+				width: 750px;
+				margin: 20px auto;
+			}
+
+			#input {
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 250px;
+				height: 140px;
+				margin: 0;
+			}
+
+			#output {
+				position: absolute;
+				top: 210px;
+				left: 0;
+				width: 250px;
+				margin: 0;
+			}
+
+			#graph {
+				position: absolute;
+				top: 0;
+				left: 320px;
+				width: 400px;
+				margin: 0;
+			}
 		</style>
 		<meta charset="utf-8"/>
 	</head>
 	<body>
-		<div class="input">
-			<form>
-				基本ステータス
-				<dl class="input">
-					<dt>ダメージ</dt>
-					<dd>
-					<input type="text" size="4" value="100" class="min" title="integer"/>
-					~
-					<input type="text" size="4" value="101" class="max" title="integer"/>
-					</dd>
-					<dt>クリティカル</dt>
-					<dd>
-					<input type="text" size="4" value="30" class="critical" title="integer"/> %
-					(Rank: <input type="text" size="2" value="2" class="criticalrank"/>)
-					</dd>
-					<dt>バランス</dt>
-					<dd>
-					<input type="text" size="4" value="80" class="balance" title="integer"/>
-					</dd>
+		<div id="main">
+			<div id="input" class="input dialog">
+				<div class="header">基本ステータス</div>
+				<form>
+					<dl class="input">
+						<dt>ダメージ</dt>
+						<dd>
+						<input type="text" size="4" value="100" class="min" title="integer" id="damage-min"/>
+						~
+						<input type="text" size="4" value="101" class="max" title="integer" id="damage-max"/>
+						</dd>
+						<dt>クリティカル</dt>
+						<dd>
+						<input type="text" size="4" value="30" class="critical" title="integer" id="critical"/> %
+						(Rank: <input type="text" size="2" value="1" class="criticalrank" id="criticalrank"/>)
+						</dd>
+						<dt>バランス</dt>
+						<dd>
+						<input type="text" size="4" value="80" class="balance" title="integer" id="balance"/>
+						</dd>
+					</dl>
+					<div class="button">
+						<button onclick="openScreenshotInput();return false">スクリーンショットから入力</button>
+					</div>
+				</form>
+			</div>
+
+			<div id="output" class="output dialog">
+				<div class="header">ダメージ期待値</div>
+				<dl class="output">
+					<dt>基本</dt>
+					<dd>128</dd>
+					<dt>クリティカル込</dt>
+					<dd>250</dd>
 				</dl>
-			</form>
+			</div>
+
+			<div id="graph" class="dialog">
+				<div class="header">確率分布</div>
+
+				<img src="http://chart.apis.google.com/chart?&chf=bg,s,262626&chs=390x200&chxs=0,FFFFFF|1,FFFFFF&cht=lc&chxt=x,y&chxl=0:|100|137|1:|0%|24.37%&chd=t:1.1,0.4,0.5,0.7,0.9,1.1,1.4,1.7,2.1,2.6,3.1,3.6,4.3,5,5.7,6.5,7.3,8.2,9.1,9.9,10.8,11.6,12.4,13.1,13.7,14.3,14.7,15,15.2,15.3,15.3,15.1,14.8,14.4,13.8,13.2,12.5,100"/>
+			</div>
+		</div>
+		
+		<!--div id="compare" class="dialog">
+			<table>
+				<thead>
+					<tr>
+						<th class="expectation">期待値</th>
+						<th class="critical">クリティカル</th>
+						<th class="balance">バランス</th>
+						<th class="damage">ダメージ</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td class="expectation">248</td>
+						<td class="critical">30</td>
+						<td class="balance">80</td>
+						<td class="damage">121~128</td>
+					</tr>
+					<tr>
+						<td class="expectation">248</td>
+						<td class="critical">30</td>
+						<td class="balance">80</td>
+						<td class="damage">121~128</td>
+					</tr>
+				</tbody>
+			</table>
+		</div-->
+
+		<div id="intro" class="dialog hidden">
+			<div class="header">mabinogi (マビノギ) ダメージ計算</div>
+			<p>このページは mabinogi (マビノギ) におけるダメージの期待値を正確に求めるページです。</p>
+			<p>ダメージの期待値を求めることで、エンチャント選び・スキル選びに役立てることを目的としています。</p>
 		</div>
 
-		<div id="upload" class="dialog">
+		<div id="upload" class="dialog hidden">
 			<div class="header">基本情報をスクリーンショットから入力</div>
 
 			<img src="/static/images/character-info.png" style="float: left; margin-right: 20px;"/>
@@ -131,6 +370,7 @@
 				<input type="file" name="image"/>
 				<!--button>アップロード</button-->
 			</div>
+			<div class="close">×</div>
 		</div>
 	</body>
 </html>

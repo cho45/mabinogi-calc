@@ -1,57 +1,7 @@
 
-function $E (str, opts) {
-	if (!opts) opts = { };
-	if (!opts.data) opts.data = { };
-
-	var t, cur = opts.parent || document.createDocumentFragment(), ret = {}, stack = [cur];
-	while (str.length) {
-		if (str.indexOf("<") == 0) {
-			if ((t = str.match(/^\s*<(\/?[^\s>\/]+)([^>]+?)?(\/)?>/))) {
-				var tag = t[1], attrs = t[2], isempty = !!t[3] || tag == "input";
-				if (tag.indexOf("/") == -1) {
-					child = document.createElement(tag);
-					if (attrs) attrs.replace(/([a-z]+)=(?:'([^']+)'|"([^"]+)")/gi,
-						function (m, name, v1, v2) {
-							var v = text(v1 || v2);
-							if (name == "class") ret[v] = child;
-							child.setAttribute(name, v);
-						}
-					);
-					cur.appendChild(ret.root ? child : (ret.root = child));
-					if (!isempty) {
-						stack.push(cur);
-						cur = child;
-					}
-				} else cur = stack.pop();
-			} else throw("Parse Error: " + str);
-		} else {
-			if ((t = str.match(/^([^<]+)/))) cur.appendChild(document.createTextNode(text(t[0])));
-		}
-		str = str.substring(t[0].length);
-	}
-
-	function text (str) {
-		return str
-			.replace(/&(#(x)?)?([^;]+);/g, function (_, isNumRef, isHex, ref) {
-				return isNumRef ? String.fromCharCode(parseInt(ref, isHex ? 16 : 10)):
-				                  {"lt":"<","gt":"<","amp":"&"}[ref];
-			})
-			.replace(/#\{([^}]+)\}/g, function (_, name) {
-				return (typeof(opts.data[name]) == "undefined") ? _ : opts.data[name];
-			});
-	}
-
-	return ret;
-}
-
-
 function log (m) {
 	if (window.console) console.log(m);
 }
-
-Array.prototype.dup = function () { // shallow copy
-	return this.slice(0);
-};
 
 $.fn.extend({
 	spinbox : function (opts) {
@@ -63,12 +13,12 @@ $.fn.extend({
 		return this.each(function () {
 			var input = $(this);
 
-			var button = $E("<div class='spinbutton'><div class='up'>+</div><div class='down'>-</div></div>");
-			input.after(button.root);
+			var button = $("<div class='spinbutton'><div class='up'>+</div><div class='down'>-</div></div>");
+			input.after(button);
 
 			var h = input.height() + 3;
 
-			$(button.root).css({
+			button.css({
 				display: "inline-block",
 				verticalAlign: "top",
 				width: "1.2em",
@@ -77,7 +27,7 @@ $.fn.extend({
 				lineHeight: 1
 			});
 
-			$(button.up)
+			button.find('.up')
 				.css({
 					width: "1em",
 					cursor: "default",
@@ -85,14 +35,15 @@ $.fn.extend({
 					position: "absolute",
 					display: "block",
 					top: 0,
-					height: h / 2
+					height: h / 2 * 1.33
 				})
 				.click(function () {
 					input.val(opts.handler(input.val(), 1));
 					input.change();
+					return false;
 				});
 
-			$(button.down)
+			button.find('.down')
 				.css({
 					width: "1em",
 					cursor: "default",
@@ -105,6 +56,7 @@ $.fn.extend({
 				.click(function () {
 					input.val(opts.handler(input.val(), -1));
 					input.change();
+					return false;
 				});
 		});
 	}
@@ -232,141 +184,42 @@ MabinogiDamageCalculator.SingleCalculator.prototype = {
 		);
 
 		$(self.form.criticalexpectation).html(expdmgwithcri.toFixed(2));
-	},
-
-	drawGraph : function (graph) {
-		var self = this;
-		$(self.form.graph).empty();
-
-		var max = graph.dup().sort(function (a, b) { return b.pr - a.pr })[0];
-		var w   = $(self.form.graph).width() / graph.length;
-		for (var i = 0; i < graph.length; i++) {
-			var d = graph[i];
-			var bar = $E("<div class='graphbar' title='#{dmg} #{pr}'>#{dmg}</div>", { parent: self.form.graph, data: d });
-			with (bar.root.style) {
-				height = (d.pr / max.pr) * 100 + "%";
-				width  = w + "px";
-				left   = w * i + "px";
-			}
-		}
-
-		$E("<div>最もよくでるダメージ値: #{dmg} その確率: #{pr}%</div>", { parent: self.form.graph, data: {
-			dmg: max.dmg,
-			pr: (max.pr * 100).toFixed(2)
-		} });
-	},
-
-	setValues : function (values) {
-		var self = this;
-		for (var k in values) if (values.hasOwnProperty(k)) {
-			if (self.form.hasOwnProperty(k)) self.form[k].value = values[k];
-		}
-		self.calc();
 	}
 };
 
-MabinogiDamageCalculator.MultiCalculator = function () { this.init.apply(this, arguments) };
-MabinogiDamageCalculator.MultiCalculator.prototype = {
-	init : function (template, parent) {
-		var self = this;
-		self.form = $E(template, { parent: parent });
-
-		self.table = $(self.form.tablesorter);
-		self.tbody = self.table.find("tbody");
-		self.tmpl  = self.tbody.html();
-
-		self.table.tablesorter();
-		self.tbody.empty();
-
-		var button  = $(self.form.calcbtn);
-		button.click(function () { self.calc() });
-
-		self.calc();
-	},
-
-	calc : function () {
-		var self = this;
-
-		var reference = null;
-
-		var inputs = $(self.form.input).val().split(/\n/).map(function (d) {
-			var data =  d.replace(/\s+/g, "").split(",");
-			data = {
-				description  : data[0],
-				min          : data[1],
-				max          : data[2],
-				balance      : data[3],
-				critical     : data[4],
-				criticalrank : data[5]
-			};
-			if (!data.description) return null;
-
-			if (data.description.match(/^\*/)) reference = data;
-
-			return data;
-		});
-
-		log("ref");
-		log(reference);
-
-		self.tbody.empty();
-		inputs.forEach(function (data) {
-			if (!data) return;
-
-			log(data);
-			if (reference) {
-				for (var k in data) if (data.hasOwnProperty(k)) {
-					if (/^[+-]/.test(data[k])) data[k] = Number(data[k]) + Number(reference[k]);
-				}
-			}
-
-			data.expectation   = MabinogiDamageCalculator.calcExpectation(
-				Number(data.min),
-				Number(data.max),
-				Number(data.balance)
-			);
-			data.expdmgwithcri = data.expectation + MabinogiDamageCalculator.calcCriticalAddtionalDamageExpectation(
-				Number(data.max),
-				Number(data.critical),
-				data.criticalrank
-			);
-
-			data.expectationout   = data.expectation.toFixed(2);
-			data.expdmgwithcriout = data.expdmgwithcri.toFixed(2);
-
-			if (reference) {
-				log((Number(data.expectation), reference.expectation));
-				data.expectationdelta   =  (data.expectation   - reference.expectation).toFixed(2);
-				data.expdmgwithcridelta =  (data.expdmgwithcri - reference.expdmgwithcri).toFixed(2);
-				data.mindelta           =  (data.min           - reference.min).toFixed(2);
-				data.maxdelta           =  (data.max           - reference.max).toFixed(2);
-				data.balancedelta       =  (data.balance       - reference.balance).toFixed(2);
-				data.criticaldelta      =  (data.critical      - reference.critical).toFixed(2);
-			} else {
-				data.expectationdelta   = "";
-				data.expdmgwithcridelta = "";
-				data.mindelta           = "";
-				data.maxdelta           = "";
-				data.balancedelta       = "";
-				data.criticaldelta      = "";
-			}
-
-			$E(self.tmpl, { parent: self.tbody[0], data : data });
-		});
-
-		var sorting = [ [6, 1], [7, 1] ];
-
-		self.table.trigger("update");
-		self.table.trigger("sorton", [sorting]);
-	}
+function openScreenshotInput () {
+	$('#upload').dialog('open');
 }
 
 $(function () {
-	var template = $("#calc-template").val();
-	var parent   = $("#calc-template").parent();
-	var single   = new MabinogiDamageCalculator.SingleCalculator(template, parent[0]);
+	$('#input input').spinbox();
 
-	var template = $("#calcall").html();
-	var parent   = $("#calcall").empty();
-	var multi   = new MabinogiDamageCalculator.MultiCalculator(template, parent[0]);
+	var upload = $('#upload').dialog({
+		autoOpen: false,
+		width: 700,
+		modal: true,
+		resizable: false
+	});
+
+	upload.
+		find('.close').
+			click(function () {
+				upload.dialog("close");
+			}).
+		end().
+		find('input[name=image]').
+			change(function () {
+				$(this).upload('/extract.cgi', function (res) {
+					res = eval(res.match(/<textarea>([\s\S]+)<\/textarea>/)[1]);
+					var damage = res.damage.split(/~/);
+					$('#critical').val(res.critical);
+					$('#balance').val(res.balance);
+					$('#damage-min').val(damage[0]);
+					$('#damage-max').val(damage[1]).change();
+					upload.dialog("close");
+				});
+			}).
+		end();
 });
+
+
