@@ -64,7 +64,7 @@
 			dl.input dt ,
 			dl.output dt {
 				font-weight: bold;
-				width: 8em;
+				width: 12em;
 			}
 
 			dl.input dd ,
@@ -303,10 +303,12 @@
 			<div id="output" class="output dialog">
 				<div class="header">ダメージ期待値</div>
 				<dl class="output">
-					<dt>基本</dt>
-					<dd>128</dd>
-					<dt>クリティカル込</dt>
-					<dd>250</dd>
+					<dt title="ダメージの期待値です。この値を効率的に上げることで攻撃が強力になります">基本</dt>
+					<dd id="expectation">128</dd>
+					<dt title="クリティカル込みの期待値です">クリティカル込</dt>
+					<dd id="expectation-cri">250</dd>
+					<dt title="敵の保護がこの値を超えるとクリが30%以下になります">クリ30%限界敵保護</dt>
+					<dd id="expectation-cri30">250</dd>
 				</dl>
 			</div>
 

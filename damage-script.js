@@ -1,4 +1,21 @@
 
+function simpleEncode (valueArray, maxValue) {
+	var simpleEncoding = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+	var chartData = ['s:'];
+	for (var i = 0; i < valueArray.length; i++) {
+		var currentValue = valueArray[i];
+		if (!isNaN(currentValue) && currentValue >= 0) {
+			chartData.push(simpleEncoding.charAt(Math.round((simpleEncoding.length-1) * currentValue / maxValue)));
+		}
+		else {
+			chartData.push('_');
+		}
+	}
+	return chartData.join('');
+}
+
+
 function log (m) {
 	if (window.console) console.log(m);
 }
@@ -132,67 +149,64 @@ MabinogiDamageCalculator = {
 	}
 };
 
-MabinogiDamageCalculator.SingleCalculator = function () { this.init.apply(this, arguments) };
-MabinogiDamageCalculator.SingleCalculator.Inputs = ["min", "max", "critical", "criticalrank", "balance"];
-MabinogiDamageCalculator.SingleCalculator.prototype = {
-	init : function (template, parent) {
-		var self = this;
-		self.form = $E(template, { parent: parent });
-
-		$.each(MabinogiDamageCalculator.SingleCalculator.Inputs, function (i) {
-			var name = this;
-			var input = $(self.form[name]);
-			input
-				.change(function () {
-					if (self.form[name].value !== "") {
-						self.calc();
-					}
-				})
-				.keyup(function () {
-					$(this).change();
-				});
-
-			if (input.attr("title") == "integer") input.spinbox();
-		});
-
-		self.calc();
-	},
-
-	calc : function () {
-		var self = this;
-
-		var graph  = [];
-		var expdmg = MabinogiDamageCalculator.calcExpectation(
-			Number(self.form.min.value),
-			Number(self.form.max.value),
-			Number(self.form.balance.value),
-			function (pr, i) {
-				graph.push({ dmg: i, pr: pr });
-			}
-		);
-
-		self.drawGraph(graph);
-
-		$(self.form.expectation).html(expdmg.toFixed(2));
-
-		self.form.criticalrank.value = self.form.criticalrank.value.toUpperCase();
-
-		var expdmgwithcri = expdmg + MabinogiDamageCalculator.calcCriticalAddtionalDamageExpectation(
-			Number(self.form.max.value),
-			Number(self.form.critical.value),
-			self.form.criticalrank.value
-		);
-
-		$(self.form.criticalexpectation).html(expdmgwithcri.toFixed(2));
-	}
-};
-
 function openScreenshotInput () {
 	$('#upload').dialog('open');
 }
 
 $(function () {
-	$('#input input').spinbox();
+	$('#input input').
+		change(function () {
+			var min = $('#damage-min').val();
+			var max = $('#damage-max').val();
+			var cri = $('#critical').val();
+			var crr = $('#criticalrank').val().toUpperCase();
+			var bln = $('#balance').val();
+
+			var graph = [];
+			var expdmg = MabinogiDamageCalculator.calcExpectation(
+				Number(min),
+				Number(max),
+				Number(bln),
+				function (pr, i) {
+					graph.push({ dmg: i, pr: pr });
+				}
+			);
+
+			drawGraph(graph);
+
+			$('#expectation').text(expdmg.toFixed(2));
+
+			var expdmgwithcri = expdmg + MabinogiDamageCalculator.calcCriticalAddtionalDamageExpectation(
+				Number(max),
+				Number(cri > 30 ? 30 : cri),
+				crr
+			);
+
+			$('#expectation-cri').text(expdmgwithcri.toFixed(2));
+			$('#expectation-cri30').text((cri - 30) / 2);
+
+			function drawGraph (graph) {
+				var max = graph.slice(0).sort(function (a, b) { return b.pr - a.pr })[0];
+				var data = [];
+				for (var i = 0, len = graph.length; i < len; i++) {
+					data[i] = Math.round((graph[i].pr / max.pr) * 1000) / 10;
+				}
+
+				var uri = 'http://chart.apis.google.com/chart?';
+				uri += '&chf=bg,s,262626';
+				uri += '&chs=390x200';
+				uri += '&cht=lc';
+				uri += '&chxt=x,y';
+				uri += '&chxs=0,FFFFFF|1,FFFFFF';
+				uri += '&chxl=';
+				uri +=   '0:|' + graph[0].dmg + '|' + graph[graph.length-1].dmg + '|';
+				uri +=   '1:|0%|' + (max.pr * 100).toFixed(2) + '%';
+				uri += '&chd=t:' + data.join(',');
+
+				$('#graph img').attr('src', uri);
+			}
+		}).
+		change();
 
 	var upload = $('#upload').dialog({
 		autoOpen: false,
